@@ -1,135 +1,243 @@
 "use client";
 
-interface Experience {
-  id: string;
-  jobTitle?: string;
-  company?: string;
-  startDate?: string;
-  endDate?: string;
-  description?: string;
-}
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Link,
+  PDFDownloadLink,
+  Path,
+  Svg,
+} from "@react-pdf/renderer";
 
-interface Education {
-  id: string;
-  degree?: string;
-  institution?: string;
-  startDate?: string;
-  endDate?: string;
-}
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    fontSize: 12,
+    fontFamily: "Helvetica",
+    color: "#000000",
+  },
+  // Header Section
+  header: {
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  name: {
+    fontSize: 29,
+    marginBottom: 4,
+    color: "#000000",
+  },
+  jobTitle: {
+    fontSize: 15,
+    marginBottom: 8,
+    color: "#000000",
+  },
+  contactRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    fontSize: 11,
+    marginTop: 5,
+  },
+  contactItem: {
+    marginHorizontal: 8,
+    color: "#000000",
+  },
+  link: {
+    color: "#000000",
+    textDecoration: "none",
+  },
 
-interface ResumeData {
-  fullName?: string;
-  title?: string;
-  email?: string;
-  phone?: string;
-  location?: string;
-  summary?: string;
-  experiences?: Experience[];
-  educations?: Education[];
-  projects?: unknown[]; // You can define a Project interface if needed
-  skills?: string[];
-  website?: string;
-  github?: string;
-  linkedin?: string;
-}
+  // Section Styles
+  sectionTitle: {
+    fontSize: 12,
+    marginTop: 15,
+    marginBottom: 8,
+    paddingBottom: 4,
+    borderBottom: "2 solid #000000",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
 
-export default function TemplateMichael({ data }: { data: ResumeData }) {
-  const d = {
-    fullName: data.fullName || "Full Name",
-    title: data.title || "Job Title",
-    email: data.email || "email@example.com",
-    phone: data.phone || "000-000-0000",
-    location: data.location || "City, Country",
-    summary: data.summary || "",
-    experiences: data.experiences || [],
-    educations: data.educations || [],
-    projects: data.projects || [],
-    skills: data.skills || [],
-    website: data.website || "",
-    github: data.github || "",
-    linkedin: data.linkedin || "",
-  };
+  // Summary
+  summaryText: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    textAlign: "justify",
+    color: "#000000",
+  },
 
+  // Education
+  educationItem: {
+    marginBottom: 12,
+  },
+  degreeTitle: {
+    fontSize: 11,
+    marginBottom: 2,
+    color: "#000000",
+  },
+  universityName: {
+    fontSize: 10,
+    color: "#555555",
+    marginBottom: 2,
+  },
+  dateLocation: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 9,
+    fontStyle: "italic",
+    color: "#666666",
+  },
+
+  // Experience
+  experienceItem: {
+    marginBottom: 15,
+  },
+  jobTitleText: {
+    fontSize: 11,
+    marginBottom: 2,
+    color: "#000000",
+  },
+  companyName: {
+    fontSize: 10,
+    color: "#555555",
+    marginBottom: 2,
+  },
+  dateLocationRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 9,
+    fontStyle: "italic",
+    color: "#666666",
+    marginBottom: 5,
+  },
+  bulletPoint: {
+    flexDirection: "row",
+    marginBottom: 3,
+    paddingLeft: 10,
+  },
+  bullet: {
+    width: 15,
+    fontSize: 10,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 10,
+    lineHeight: 1.4,
+  },
+
+  // Projects
+  projectItem: {
+    marginBottom: 12,
+  },
+  projectTitle: {
+    fontSize: 11,
+    marginBottom: 2,
+    color: "#000000",
+  },
+  projectLink: {
+    fontSize: 8,
+    color: "#0066cc",
+    marginBottom: 3,
+  },
+  projectTech: {
+    fontSize: 9,
+    color: "#555555",
+    marginBottom: 3,
+  },
+  projectDescription: {
+    fontSize: 10,
+    lineHeight: 1.4,
+  },
+
+  // Skills
+  skillsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 5,
+  },
+  skillBadge: {
+    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginRight: 8,
+    marginBottom: 8,
+    borderRadius: 3,
+    fontSize: 9,
+  },
+});
+
+export function MyResumePDF({ data }) {
   return (
-    <article className="max-w-[210mm] w-[210mm] bg-white p-6" style={{ minHeight: "297mm" }}>
-      {/* header */}
-      <header className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">{d.fullName}</h1>
-        <p className="text-sm text-gray-600">
-          {d.title} • {d.location}
-        </p>
-        <p className="text-sm text-gray-500">
-          {d.email} • {d.phone}
-        </p>
-      </header>
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.name}>{data.fullName || "John Doe"}</Text>
+          <Text style={styles.jobTitle}>
+            {data.title || "Full Stack Web Developer"}
+          </Text>
 
-      {/* summary */}
-      <section className="mb-4">
-        <h4 className="uppercase text-xs text-gray-500 tracking-wider">Summary</h4>
-        <p className="mt-1 text-sm text-gray-700">{d.summary}</p>
-      </section>
+          <View style={styles.contactRow}>
+            {data.email && (
+              <Link
+                src={`mailto:${data.email}`}
+                style={[styles.contactItem, styles.link]}
+              >
+                {data.email}
+              </Link>
+            )}
+            {data.phone && (
+              <Text style={styles.contactItem}> {data.phone}</Text>
+            )}
+            {data.linkedin && (
+              <Link src={data.linkedin} style={styles.link}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    style={{ marginRight: 4 }}
+                  >
+                    <Path
+                      d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                      fill="#0A66C2"
+                    />
+                  </Svg>
+                  <Text>LinkedIn</Text>
+                </View>
+              </Link>
+            )}
+            {data.github && (
+  <View style={{ flexDirection: "row", alignItems: "center", marginHorizontal: 8 }}>
+    <Svg width="12" height="12" viewBox="0 0 24 24" style={{ marginRight: 4 }}>
+      <Path
+        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+        fill="#181717"
+      />
+    </Svg>
+    <Link src={data.github} style={styles.link}>
+      <Text>GitHub</Text>
+    </Link>
+  </View>
+)}
+            {data.location && (
+              <Text style={styles.contactItem}>{data.location}</Text>
+            )}
+          </View>
+        </View>
 
-      {/* experience */}
-      <section className="mb-4">
-        <h4 className="uppercase text-xs text-gray-500 tracking-wider">Experience</h4>
-        <div className="mt-2 space-y-3">
-          {d.experiences.length === 0 && (
-            <p className="text-sm text-gray-500">No experience added.</p>
-          )}
-          {d.experiences.map((e) => (
-            <div key={e.id} className="text-sm">
-              <div className="flex justify-between">
-                <strong>{e.jobTitle || "Job Title"}</strong>
-                <span className="text-gray-500 text-xs">
-                  {e.startDate} — {e.endDate || "Present"}
-                </span>
-              </div>
-              <div className="text-gray-700">{e.company}</div>
-              {e.description && (
-                <ul className="list-disc ml-5 text-gray-700 mt-1">
-                  <li>{e.description}</li>
-                </ul>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* education */}
-      <section className="mb-4">
-        <h4 className="uppercase text-xs text-gray-500 tracking-wider">Education</h4>
-        <div className="mt-2 space-y-2">
-          {d.educations.length === 0 && (
-            <p className="text-sm text-gray-500">No education added.</p>
-          )}
-          {d.educations.map((ed) => (
-            <div key={ed.id} className="text-sm">
-              <div className="flex justify-between">
-                <strong>{ed.degree}</strong>
-                <span className="text-gray-500 text-xs">
-                  {ed.startDate} — {ed.endDate}
-                </span>
-              </div>
-              <div className="text-gray-700">{ed.institution}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* skills */}
-      <section>
-        <h4 className="uppercase text-xs text-gray-500 tracking-wider">Skills</h4>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {d.skills.length === 0 && (
-            <span className="text-sm text-gray-500">No skills added.</span>
-          )}
-          {d.skills.map((s, i) => (
-            <span key={i} className="text-xs px-2 py-1 border rounded text-gray-700">
-              {s}
-            </span>
-          ))}
-        </div>
-      </section>
-    </article>
+        {/* Summary */}
+        {data.summary && (
+          <View>
+            <Text style={styles.sectionTitle}>SUMMARY</Text>
+            <Text style={styles.summaryText}>{data.summary}</Text>
+          </View>
+        )}
+      </Page>
+    </Document>
   );
 }
+export default MyResumePDF;

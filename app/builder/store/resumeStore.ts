@@ -52,6 +52,7 @@ export type ResumeState = {
   addEducation: (edu: Partial<Education>) => void;
   updateEducation: (id: string, patch: Partial<Education>) => void;
   removeEducation: (id: string) => void;
+  
 
   addProject: (proj: Partial<Project>) => void;
   updateProject: (id: string, patch: Partial<Project>) => void;
