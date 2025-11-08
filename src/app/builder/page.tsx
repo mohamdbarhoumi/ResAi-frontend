@@ -9,6 +9,8 @@ import MyResumePDF from "./preview/Template1";
 import { useResumeStore } from "./store/resumeStore";
 import Navbar from "../components/Navbar";
 import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
+import StepExperience from "./components/StepExperience";
+import StepProjects from "./components/StepProjects";
 
 export default function ResumeBuilderPage() {
   const [activeTab, setActiveTab] = useState<string>("Personal");
@@ -20,6 +22,10 @@ export default function ResumeBuilderPage() {
     switch (activeTab) {
       case "Personal":
         return <StepPersonal />;
+      case "Experience":
+        return <StepExperience />
+      case "Projects":
+        return <StepProjects />
       default:
         return (
           <div className="text-gray-500">

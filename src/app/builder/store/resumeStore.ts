@@ -3,12 +3,16 @@ import {create} from "zustand"
 
 export type Experience = {
   id: string;
-  jobTitle: string;
+  role: string;
   company: string;
   startDate: string;
   endDate: string;
-  description: string;
+  location?: string;
+  employmentType?: string;
+  bullets: { id: string; text: string }[];
 };
+
+
 
 export type Education = {
   id: string;
@@ -21,9 +25,13 @@ export type Education = {
 export type Project = {
   id: string;
   title: string;
-  description: string;
-  technologies: string[]; // array of strings
+  tech: string[];                 // same meaning as technologies
+  link?: string;                  // optional
+  startDate?: string;
+  endDate?: string;
+  bullets: { id: string; text: string }[]; // same bullet style as experience
 };
+
 
 export type ResumeState = {
   // Personal
@@ -83,19 +91,22 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   setPersonal: (payload) => set((s) => ({ ...s, ...payload })),
 
   addExperience: (exp) =>
-    set((s) => ({
-      experiences: [
-        ...s.experiences,
-        {
-          id: id(),
-          jobTitle: exp.jobTitle || "",
-          company: exp.company || "",
-          startDate: exp.startDate || "",
-          endDate: exp.endDate || "",
-          description: exp.description || "",
-        },
-      ],
-    })),
+  set((s) => ({
+    experiences: [
+      ...s.experiences,
+      {
+        id: id(),
+        role: exp.role?.trim() ?? "",
+        company: exp.company?.trim() ?? "",
+        startDate: exp.startDate ?? "",
+        endDate: exp.endDate ?? "",
+        location: exp.location?.trim() ?? "",
+        employmentType: exp.employmentType ?? "",
+        bullets: exp.bullets ?? [], // <-- new
+      },
+    ],
+  })),
+
 
   updateExperience: (idToUpdate, patch) =>
     set((s) => ({
@@ -126,23 +137,33 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     set((s) => ({ educations: s.educations.filter((x) => x.id !== idToRemove) })),
 
   addProject: (proj) =>
-    set((s) => ({
-      projects: [
-        ...s.projects,
-        {
-          id: id(),
-          title: proj.title || "",
-          description: proj.description || "",
-          technologies: proj.technologies || [],
-        },
-      ],
-    })),
+  set((s) => ({
+    projects: [
+      ...s.projects,
+      {
+        id: id(),
+        title: proj.title?.trim() ?? "",
+        tech: proj.tech ?? [],
+        link: proj.link?.trim() ?? "",
+        startDate: proj.startDate ?? "",
+        endDate: proj.endDate ?? "",
+        bullets: proj.bullets ?? [], // same pattern as experience
+      },
+    ],
+  })),
 
-  updateProject: (idToUpdate, patch) =>
-    set((s) => ({ projects: s.projects.map((p) => (p.id === idToUpdate ? { ...p, ...patch } : p)) })),
+updateProject: (idToUpdate, patch) =>
+  set((s) => ({
+    projects: s.projects.map((p) =>
+      p.id === idToUpdate ? { ...p, ...patch } : p
+    ),
+  })),
 
-  removeProject: (idToRemove) =>
-    set((s) => ({ projects: s.projects.filter((p) => p.id !== idToRemove) })),
+removeProject: (idToRemove) =>
+  set((s) => ({
+    projects: s.projects.filter((p) => p.id !== idToRemove),
+  })),
+
 
   setSkills: (skills) => set(() => ({ skills })),
 

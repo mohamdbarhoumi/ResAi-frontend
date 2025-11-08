@@ -12,6 +12,8 @@ import {
   Svg,
 } from "@react-pdf/renderer";
 
+
+
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -234,6 +236,61 @@ export function MyResumePDF({ data }) {
           <View>
             <Text style={styles.sectionTitle}>SUMMARY</Text>
             <Text style={styles.summaryText}>{data.summary}</Text>
+          </View>
+        )}
+
+        {/* Projects */}
+        {data.projects?.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>PROJECTS</Text>
+
+            {data.projects.map((proj) => (
+              <View key={proj.id} style={styles.experienceItem}>
+                <View style={styles.dateLocationRow}>
+                  <Text>
+                    {proj.title}
+                    {proj.link && (
+  <Link href={proj.link} style={{ marginLeft: 4 }}>
+    <Text style={{ 
+      color: '#0066cc', 
+      fontSize: 9, 
+      fontFamily: 'Helvetica'
+    }}>
+      →
+    </Text>
+  </Link>
+)}
+                  </Text>
+                  <Text>
+                    {proj.startDate || ""} - {proj.endDate || ""}
+                  </Text>
+                </View>
+
+                {/* Technologies */}
+                {proj.tech && proj.tech.length > 0 && (
+                  <Text style={styles.projectTech}>{proj.tech.join(", ")}</Text>
+                )}
+
+                {/* Bullets */}
+                {Array.isArray(proj.bullets) &&
+                  proj.bullets
+                    .map((b) => {
+                      if (!b) return null;
+                      if (typeof b === "string") return { id: undefined, text: b.trim() };
+                      return {
+                        id: b.id,
+                        text: typeof b.text === "string" ? b.text.trim() : String(b.text ?? "").trim(),
+                      };
+                    })
+                    .filter((nb) => nb && nb.text.length > 0)
+                    .map((nb, i) => (
+                      <View key={nb.id ?? `pb-${i}`} style={styles.bulletPoint}>
+                        <Text style={styles.bullet}>•</Text>
+                        <Text style={styles.bulletText}>{nb.text}</Text>
+                      </View>
+                    ))}
+              </View>
+            ))}
           </View>
         )}
       </Page>
