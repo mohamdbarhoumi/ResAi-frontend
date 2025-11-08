@@ -23,9 +23,9 @@ const PDFPreviewWrapper = dynamic(
   }
 );
 
-// Dynamic PDFDownloadLink
-const PDFDownloadLink = dynamic(
-  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+// Dynamic Download Button
+const DownloadButton = dynamic(
+  () => import("./components/DownloadButton"),
   { ssr: false }
 );
 
@@ -56,10 +56,14 @@ export default function ResumeBuilderPage() {
   const handleUpdatePreview = () => {
     const state = useResumeStore.getState();
     console.log("Preview Data:", state);
+    // Create a deep clone to ensure React detects the change
     const newSnapshot = JSON.parse(JSON.stringify(state));
-    setSnapshot(newSnapshot);
-    // Force re-render of PDF component
-    setPreviewKey((prev) => prev + 1);
+    // Force complete refresh by clearing first
+    setSnapshot(null);
+    setTimeout(() => {
+      setSnapshot(newSnapshot);
+      setPreviewKey((prev) => prev + 1);
+    }, 0);
   };
 
   return (
@@ -105,15 +109,7 @@ export default function ResumeBuilderPage() {
               </button>
 
               {snapshot && (
-                <PDFDownloadLink
-                  document={
-                    <div>Loading...</div> as any
-                  }
-                  fileName={`${snapshot?.fullName?.trim() || "Resume"}.pdf`}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded text-center text-gray-700 hover:bg-gray-50 transition"
-                >
-                  {({ loading }) => (loading ? "Generating…" : "Export PDF")}
-                </PDFDownloadLink>
+                <DownloadButton snapshot={snapshot} />
               )}
             </div>
           </aside>
