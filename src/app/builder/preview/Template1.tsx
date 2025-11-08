@@ -7,35 +7,15 @@ import {
   View,
   StyleSheet,
   Link,
-  PDFDownloadLink,
-  Path,
   Svg,
+  Path,
 } from "@react-pdf/renderer";
 
-
-
 const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    fontSize: 12,
-    fontFamily: "Helvetica",
-    color: "#000000",
-  },
-  // Header Section
-  header: {
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  name: {
-    fontSize: 29,
-    marginBottom: 4,
-    color: "#000000",
-  },
-  jobTitle: {
-    fontSize: 15,
-    marginBottom: 8,
-    color: "#000000",
-  },
+  page: { padding: 40, fontSize: 12, fontFamily: "Helvetica", color: "#000" },
+  header: { marginBottom: 20, textAlign: "center" },
+  name: { fontSize: 29, marginBottom: 4, color: "#000" },
+  jobTitle: { fontSize: 15, marginBottom: 8, color: "#000" },
   contactRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -43,139 +23,49 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 5,
   },
-  contactItem: {
-    marginHorizontal: 8,
-    color: "#000000",
-  },
-  link: {
-    color: "#000000",
-    textDecoration: "none",
-  },
-
-  // Section Styles
+  contactItem: { marginHorizontal: 8, color: "#000" },
+  link: { color: "#000", textDecoration: "none" },
   sectionTitle: {
     fontSize: 12,
     marginTop: 15,
     marginBottom: 8,
     paddingBottom: 4,
-    borderBottom: "2 solid #000000",
+    borderBottom: "2 solid #000",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-
-  // Summary
-  summaryText: {
-    fontSize: 10,
-    lineHeight: 1.5,
-    textAlign: "justify",
-    color: "#000000",
-  },
-
-  // Education
-  educationItem: {
-    marginBottom: 12,
-  },
-  degreeTitle: {
-    fontSize: 11,
-    marginBottom: 2,
-    color: "#000000",
-  },
-  universityName: {
-    fontSize: 10,
-    color: "#555555",
-    marginBottom: 2,
-  },
-  dateLocation: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    fontSize: 9,
-    fontStyle: "italic",
-    color: "#666666",
-  },
-
-  // Experience
-  experienceItem: {
-    marginBottom: 15,
-  },
-  jobTitleText: {
-    fontSize: 11,
-    marginBottom: 2,
-    color: "#000000",
-  },
-  companyName: {
-    fontSize: 10,
-    color: "#555555",
-    marginBottom: 2,
-  },
-  dateLocationRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    fontSize: 9,
-    fontStyle: "italic",
-    color: "#666666",
-    marginBottom: 5,
-  },
-  bulletPoint: {
-    flexDirection: "row",
-    marginBottom: 3,
-    paddingLeft: 10,
-  },
-  bullet: {
-    width: 15,
-    fontSize: 10,
-  },
-  bulletText: {
-    flex: 1,
-    fontSize: 10,
-    lineHeight: 1.4,
-  },
-
-  // Projects
-  projectItem: {
-    marginBottom: 12,
-  },
-  projectTitle: {
-    fontSize: 11,
-    marginBottom: 2,
-    color: "#000000",
-  },
-  projectLink: {
-    fontSize: 8,
-    color: "#0066cc",
-    marginBottom: 3,
-  },
-  projectTech: {
-    fontSize: 9,
-    color: "#555555",
-    marginBottom: 3,
-  },
-  projectDescription: {
-    fontSize: 10,
-    lineHeight: 1.4,
-  },
-
-  // Skills
-  skillsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 5,
-  },
-  skillBadge: {
-    backgroundColor: "#f0f0f0",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 8,
-    marginBottom: 8,
-    borderRadius: 3,
-    fontSize: 9,
-  },
+  summaryText: { fontSize: 10, lineHeight: 1.5, textAlign: "justify", color: "#000" },
+  educationItem: { marginBottom: 12 },
+  degreeTitle: { fontSize: 11, marginBottom: 2, color: "#000" },
+  universityName: { fontSize: 10, color: "#555", marginBottom: 2 },
+  dateLocation: { flexDirection: "row", justifyContent: "space-between", fontSize: 9, fontStyle: "italic", color: "#666" },
+  item: { marginBottom: 15 },
+  titleText: { fontSize: 11, marginBottom: 2, color: "#000" },
+  secondaryText: { fontSize: 10, color: "#555", marginBottom: 2 },
+  dateLocationRow: { flexDirection: "row", justifyContent: "space-between", fontSize: 9, fontStyle: "italic", color: "#666", marginBottom: 5 },
+  bulletPoint: { flexDirection: "row", marginBottom: 3, paddingLeft: 10 },
+  bullet: { width: 15, fontSize: 10 },
+  bulletText: { flex: 1, fontSize: 10, lineHeight: 1.4 },
+  skillsContainer: { flexDirection: "row", flexWrap: "wrap", marginTop: 5 },
+  skillBadge: { backgroundColor: "#f0f0f0", paddingHorizontal: 10, paddingVertical: 5, marginRight: 8, marginBottom: 8, borderRadius: 3, fontSize: 9 },
 });
 
-export function MyResumePDF({ data }) {
+const renderBullets = (bullets: any[] = []) =>
+  bullets
+    .map((b) => (b ? { text: b.text?.trim() ?? "" } : null))
+    .filter(Boolean)
+    .map((b, i) => (
+      <View key={`bullet-${i}`} style={styles.bulletPoint}>
+        <Text style={styles.bullet}>•</Text>
+        <Text style={styles.bulletText}>{b!.text}</Text>
+      </View>
+    ));
+
+export function MyResumePDF({ data }: { data: any }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
+         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{data.fullName || "John Doe"}</Text>
           <Text style={styles.jobTitle}>
@@ -239,62 +129,71 @@ export function MyResumePDF({ data }) {
           </View>
         )}
 
+        {/* Experience */}
+        {data.experiences?.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>EXPERIENCE</Text>
+            {data.experiences.map((exp: any, idx: number) => (
+              <View key={exp.id ?? idx} style={styles.item}>
+                <View style={styles.dateLocationRow}>
+                  <Text style={styles.titleText}>{exp.role}</Text>
+                  <Text>{exp.startDate} – {exp.endDate ?? "Present"}</Text>
+                </View>
+                <Text style={styles.secondaryText}>{exp.company}</Text>
+                {renderBullets(exp.bullets)}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Projects */}
         {data.projects?.length > 0 && (
           <View>
             <Text style={styles.sectionTitle}>PROJECTS</Text>
-
-            {data.projects.map((proj) => (
-              <View key={proj.id} style={styles.experienceItem}>
+            {data.projects.map((proj: any, idx: number) => (
+              <View key={proj.id ?? idx} style={styles.item}>
                 <View style={styles.dateLocationRow}>
-                  <Text>
-                    {proj.title}
-                    {proj.link && (
-  <Link href={proj.link} style={{ marginLeft: 4 }}>
-    <Text style={{ 
-      color: '#0066cc', 
-      fontSize: 9, 
-      fontFamily: 'Helvetica'
-    }}>
-      →
-    </Text>
-  </Link>
-)}
-                  </Text>
-                  <Text>
-                    {proj.startDate || ""} - {proj.endDate || ""}
-                  </Text>
+                  <Text style={styles.titleText}>{proj.title}</Text>
+                  <Text>{proj.startDate ?? ""} – {proj.endDate ?? ""}</Text>
                 </View>
-
-                {/* Technologies */}
-                {proj.tech && proj.tech.length > 0 && (
-                  <Text style={styles.projectTech}>{proj.tech.join(", ")}</Text>
-                )}
-
-                {/* Bullets */}
-                {Array.isArray(proj.bullets) &&
-                  proj.bullets
-                    .map((b) => {
-                      if (!b) return null;
-                      if (typeof b === "string") return { id: undefined, text: b.trim() };
-                      return {
-                        id: b.id,
-                        text: typeof b.text === "string" ? b.text.trim() : String(b.text ?? "").trim(),
-                      };
-                    })
-                    .filter((nb) => nb && nb.text.length > 0)
-                    .map((nb, i) => (
-                      <View key={nb.id ?? `pb-${i}`} style={styles.bulletPoint}>
-                        <Text style={styles.bullet}>•</Text>
-                        <Text style={styles.bulletText}>{nb.text}</Text>
-                      </View>
-                    ))}
+                {proj.tech?.length > 0 && <Text style={styles.secondaryText}>{proj.tech.join(", ")}</Text>}
+                {renderBullets(proj.bullets)}
               </View>
             ))}
+          </View>
+        )}
+
+        {/* Education */}
+        {data.educations?.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>EDUCATION</Text>
+            {data.educations.map((edu: any, idx: number) => (
+              <View key={edu.id ?? idx} style={styles.educationItem}>
+                <Text style={styles.degreeTitle}>{edu.degree}</Text>
+                <Text style={styles.universityName}>{edu.institution}</Text>
+                <View style={styles.dateLocation}>
+                  <Text>{edu.location ?? ""}</Text>
+                  <Text>{edu.startDate} – {edu.endDate ?? "Present"}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Skills */}
+        {data.skills?.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>SKILLS</Text>
+            <View style={styles.skillsContainer}>
+              {data.skills.map((s: string, i: number) => (
+                <Text key={i} style={styles.skillBadge}>{s}</Text>
+              ))}
+            </View>
           </View>
         )}
       </Page>
     </Document>
   );
 }
+
 export default MyResumePDF;

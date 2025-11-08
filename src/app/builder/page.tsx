@@ -1,20 +1,38 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/resume/builder/page.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import TabNav from "./components/TabNav";
 import StepPersonal from "./components/StepPersonal";
-import MyResumePDF from "./preview/Template1";
 import { useResumeStore } from "./store/resumeStore";
 import Navbar from "../components/Navbar";
-import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 import StepExperience from "./components/StepExperience";
 import StepProjects from "./components/StepProjects";
+import dynamic from "next/dynamic";
+
+// Create a wrapper component for the PDF Preview
+const PDFPreviewWrapper = dynamic(
+  () => import("./components/PdfPreviewWrapper"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+        Loading preview...
+      </div>
+    ),
+  }
+);
+
+// Dynamic PDFDownloadLink
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
 
 export default function ResumeBuilderPage() {
   const [activeTab, setActiveTab] = useState<string>("Personal");
   const [snapshot, setSnapshot] = useState<Record<string, any> | null>(null);
+  const [previewKey, setPreviewKey] = useState<number>(0);
 
   const tabs = ["Personal", "Experience", "Education", "Projects", "Skills"];
 
@@ -23,9 +41,9 @@ export default function ResumeBuilderPage() {
       case "Personal":
         return <StepPersonal />;
       case "Experience":
-        return <StepExperience />
+        return <StepExperience />;
       case "Projects":
-        return <StepProjects />
+        return <StepProjects />;
       default:
         return (
           <div className="text-gray-500">
@@ -35,11 +53,14 @@ export default function ResumeBuilderPage() {
     }
   };
 
-  // Memoize the PDF document — only re-creates when snapshot changes
-  const MemoizedPDF = useMemo(() => {
-    if (!snapshot) return null;
-    return <MyResumePDF data={snapshot} />;
-  }, [snapshot]);
+  const handleUpdatePreview = () => {
+    const state = useResumeStore.getState();
+    console.log("Preview Data:", state);
+    const newSnapshot = JSON.parse(JSON.stringify(state));
+    setSnapshot(newSnapshot);
+    // Force re-render of PDF component
+    setPreviewKey((prev) => prev + 1);
+  };
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -58,31 +79,20 @@ export default function ResumeBuilderPage() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold">Template preview</h3>
                 <button
-                  onClick={() => {
-                    const state = useResumeStore.getState();
-                    console.log("Preview Data:", state); // DEBUG
-                    setSnapshot(JSON.parse(JSON.stringify(state)));
-                  }}
+                  onClick={handleUpdatePreview}
                   className="px-3 py-1 bg-[#1E88E5] text-white rounded text-sm hover:bg-[#1565c0] transition"
                 >
                   Update Preview
                 </button>
               </div>
 
-              {/* PDF Viewer */}
+              {/* PDF Preview */}
               <div className="flex-1 overflow-hidden border rounded bg-gray-50">
-                {MemoizedPDF ? (
-                  <PDFViewer
-                    width="100%"
-                    height="100%"
-                    style={{ border: "none" }}
-                    showToolbar={false}
-                  >
-                    {MemoizedPDF}
-                  </PDFViewer>
+                {snapshot ? (
+                  <PDFPreviewWrapper key={previewKey} data={snapshot} />
                 ) : (
                   <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-                    Click “Update Preview” to see your resume.
+                    Click &quot;Update Preview&quot; to see your resume.
                   </div>
                 )}
               </div>
@@ -94,15 +104,15 @@ export default function ResumeBuilderPage() {
                 Save (coming)
               </button>
 
-              {MemoizedPDF && (
+              {snapshot && (
                 <PDFDownloadLink
-                  document={MemoizedPDF}
+                  document={
+                    <div>Loading...</div> as any
+                  }
                   fileName={`${snapshot?.fullName?.trim() || "Resume"}.pdf`}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded text-center text-gray-700 hover:bg-gray-50 transition"
                 >
-                  {({ loading }) =>
-                    loading ? "Generating…" : "Export PDF"
-                  }
+                  {({ loading }) => (loading ? "Generating…" : "Export PDF")}
                 </PDFDownloadLink>
               )}
             </div>

@@ -1,5 +1,5 @@
 // app/resume/builder/store/resumeStore.ts
-import {create} from "zustand"
+import { create } from "zustand";
 
 export type Experience = {
   id: string;
@@ -12,8 +12,6 @@ export type Experience = {
   bullets: { id: string; text: string }[];
 };
 
-
-
 export type Education = {
   id: string;
   degree: string;
@@ -25,16 +23,14 @@ export type Education = {
 export type Project = {
   id: string;
   title: string;
-  tech: string[];                 // same meaning as technologies
-  link?: string;                  // optional
+  tech: string[];
+  link?: string;
   startDate?: string;
   endDate?: string;
-  bullets: { id: string; text: string }[]; // same bullet style as experience
+  bullets: { id: string; text: string }[];
 };
 
-
 export type ResumeState = {
-  // Personal
   fullName: string;
   title: string;
   email: string;
@@ -45,13 +41,11 @@ export type ResumeState = {
   github?: string;
   linkedin?: string;
 
-  // Arrays
   experiences: Experience[];
   educations: Education[];
   projects: Project[];
   skills: string[];
 
-  // actions
   setPersonal: (payload: Partial<ResumeState>) => void;
   addExperience: (exp: Partial<Experience>) => void;
   updateExperience: (id: string, patch: Partial<Experience>) => void;
@@ -60,7 +54,6 @@ export type ResumeState = {
   addEducation: (edu: Partial<Education>) => void;
   updateEducation: (id: string, patch: Partial<Education>) => void;
   removeEducation: (id: string) => void;
-  
 
   addProject: (proj: Partial<Project>) => void;
   updateProject: (id: string, patch: Partial<Project>) => void;
@@ -72,7 +65,7 @@ export type ResumeState = {
 
 const id = () => Math.random().toString(36).slice(2, 9);
 
-export const useResumeStore = create<ResumeState>((set, get) => ({
+export const useResumeStore = create<ResumeState>((set) => ({
   fullName: "",
   title: "",
   email: "",
@@ -91,30 +84,33 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
   setPersonal: (payload) => set((s) => ({ ...s, ...payload })),
 
   addExperience: (exp) =>
-  set((s) => ({
-    experiences: [
-      ...s.experiences,
-      {
-        id: id(),
-        role: exp.role?.trim() ?? "",
-        company: exp.company?.trim() ?? "",
-        startDate: exp.startDate ?? "",
-        endDate: exp.endDate ?? "",
-        location: exp.location?.trim() ?? "",
-        employmentType: exp.employmentType ?? "",
-        bullets: exp.bullets ?? [], // <-- new
-      },
-    ],
-  })),
-
+    set((s) => ({
+      experiences: [
+        ...s.experiences,
+        {
+          id: id(),
+          role: exp.role?.trim() ?? "",
+          company: exp.company?.trim() ?? "",
+          startDate: exp.startDate ?? "",
+          endDate: exp.endDate ?? "",
+          location: exp.location?.trim() ?? "",
+          employmentType: exp.employmentType ?? "",
+          bullets: exp.bullets ?? [],
+        },
+      ],
+    })),
 
   updateExperience: (idToUpdate, patch) =>
     set((s) => ({
-      experiences: s.experiences.map((e) => (e.id === idToUpdate ? { ...e, ...patch } : e)),
+      experiences: s.experiences.map((e) =>
+        e.id === idToUpdate ? { ...e, ...patch } : e
+      ),
     })),
 
   removeExperience: (idToRemove) =>
-    set((s) => ({ experiences: s.experiences.filter((e) => e.id !== idToRemove) })),
+    set((s) => ({
+      experiences: s.experiences.filter((e) => e.id !== idToRemove),
+    })),
 
   addEducation: (edu) =>
     set((s) => ({
@@ -131,39 +127,44 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     })),
 
   updateEducation: (idToUpdate, patch) =>
-    set((s) => ({ educations: s.educations.map((x) => (x.id === idToUpdate ? { ...x, ...patch } : x)) })),
+    set((s) => ({
+      educations: s.educations.map((x) =>
+        x.id === idToUpdate ? { ...x, ...patch } : x
+      ),
+    })),
 
   removeEducation: (idToRemove) =>
-    set((s) => ({ educations: s.educations.filter((x) => x.id !== idToRemove) })),
+    set((s) => ({
+      educations: s.educations.filter((x) => x.id !== idToRemove),
+    })),
 
   addProject: (proj) =>
-  set((s) => ({
-    projects: [
-      ...s.projects,
-      {
-        id: id(),
-        title: proj.title?.trim() ?? "",
-        tech: proj.tech ?? [],
-        link: proj.link?.trim() ?? "",
-        startDate: proj.startDate ?? "",
-        endDate: proj.endDate ?? "",
-        bullets: proj.bullets ?? [], // same pattern as experience
-      },
-    ],
-  })),
+    set((s) => ({
+      projects: [
+        ...s.projects,
+        {
+          id: id(),
+          title: proj.title?.trim() ?? "",
+          tech: proj.tech ?? [],
+          link: proj.link?.trim() ?? "",
+          startDate: proj.startDate ?? "",
+          endDate: proj.endDate ?? "",
+          bullets: proj.bullets ?? [],
+        },
+      ],
+    })),
 
-updateProject: (idToUpdate, patch) =>
-  set((s) => ({
-    projects: s.projects.map((p) =>
-      p.id === idToUpdate ? { ...p, ...patch } : p
-    ),
-  })),
+  updateProject: (idToUpdate, patch) =>
+    set((s) => ({
+      projects: s.projects.map((p) =>
+        p.id === idToUpdate ? { ...p, ...patch } : p
+      ),
+    })),
 
-removeProject: (idToRemove) =>
-  set((s) => ({
-    projects: s.projects.filter((p) => p.id !== idToRemove),
-  })),
-
+  removeProject: (idToRemove) =>
+    set((s) => ({
+      projects: s.projects.filter((p) => p.id !== idToRemove),
+    })),
 
   setSkills: (skills) => set(() => ({ skills })),
 
