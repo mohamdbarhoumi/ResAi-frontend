@@ -10,6 +10,9 @@ import StepExperience from "./components/StepExperience";
 import StepProjects from "./components/StepProjects";
 import dynamic from "next/dynamic";
 import StepEducation  from "./components/StepEducation";
+import StepSkills from "./components/StepSkills";
+import StepCertificates from "./components/StepCerts";
+import StepLanguages from "./components/StepLanguages";
 
 // Create a wrapper component for the PDF Preview
 const PDFPreviewWrapper = dynamic(
@@ -35,7 +38,7 @@ export default function ResumeBuilderPage() {
   const [snapshot, setSnapshot] = useState<Record<string, any> | null>(null);
   const [previewKey, setPreviewKey] = useState<number>(0);
 
-  const tabs = ["Personal", "Experience", "Education", "Projects", "Skills"];
+  const tabs = ["Personal", "Experience", "Education", "Projects", "Skills", "Certificates", "Languages"];
 
   const renderTab = () => {
     switch (activeTab) {
@@ -47,6 +50,12 @@ export default function ResumeBuilderPage() {
         return <StepProjects />;
       case "Education":
         return <StepEducation/>;
+      case "Skills":
+        return <StepSkills/>
+      case "Certificates":
+        return <StepCertificates/>
+      case "Languages":
+        return <StepLanguages/>
       default:
         return (
           <div className="text-gray-500">

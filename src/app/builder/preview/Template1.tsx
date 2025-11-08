@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontSize: 12,
-    marginTop: 15,
+    marginTop: 8,
     marginBottom: 8,
     paddingBottom: 4,
     borderBottom: "2 solid #000",
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     borderRadius: 3, 
     fontSize: 9
   },
-  
+
 });
 
 const renderBullets = (bullets: any[] = []) =>
@@ -290,15 +290,39 @@ export function MyResumePDF({ data }: { data: any }) {
           </View>
         )}
 
-        {/* Skills */}
-        {data.skills?.length > 0 && (
+        {/* Skills Section */}
+    {data.skills && data.skills.length > 0 && (
+      <View>
+        <Text style={styles.sectionTitle}>Skills</Text>
+        <Text>
+          Skills: {data.skills.map((s: { id: string; name: string }) => s.name).join(", ")}
+        </Text>
+      </View>
+    )}
+
+    {/* Certificates */}
+        {data.certificates.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Certificates</Text>
+            {data.certificates.map((c) => (
+              <Text key={c.id} style={styles.item}>
+                <Text style={{ fontWeight: "bold" }}>{c.name}</Text>
+                {c.issuer && `, ${c.issuer}`}
+                {c.date && ` (${c.date})`}
+              </Text>
+            ))}
+          </View>
+        )}
+
+        {/* Languages */}
+        {data.languages.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>SKILLS</Text>
-            <View style={styles.skillsContainer}>
-              {data.skills.map((s: string, i: number) => (
-                <Text key={i} style={styles.skillBadge}>{s}</Text>
-              ))}
-            </View>
+            <Text style={styles.sectionTitle}>Languages</Text>
+            <Text>
+              {data.languages
+                .map((l) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
+                .join(", ")}
+            </Text>
           </View>
         )}
       </Page>

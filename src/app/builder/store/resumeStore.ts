@@ -20,7 +20,7 @@ export type Education = {
   startDate: string;           
   endDate: string;             
   gpa?: string;                
-  honors?: string;                  
+  honors?: string;             
 };
 
 export type Project = {
@@ -33,6 +33,24 @@ export type Project = {
   bullets: { id: string; text: string }[];
 };
 
+export type Skill = {
+  id: string;    
+  name: string;  
+};
+
+export type Certificate = {
+  id: string;      
+  name: string;   
+  issuer?: string; 
+  date?: string;  
+};
+
+export type Language = {
+  id: string;         
+  name: string;      
+  proficiency?: string; 
+};
+
 export type ResumeState = {
   fullName: string;
   title: string;
@@ -43,13 +61,15 @@ export type ResumeState = {
   website?: string;
   github?: string;
   linkedin?: string;
-
   experiences: Experience[];
   educations: Education[];
   projects: Project[];
-  skills: string[];
+  skills: Skill[];
+  certificates: Certificate[];
+  languages: Language[];
 
   setPersonal: (payload: Partial<ResumeState>) => void;
+
   addExperience: (exp: Partial<Experience>) => void;
   updateExperience: (id: string, patch: Partial<Experience>) => void;
   removeExperience: (id: string) => void;
@@ -62,7 +82,18 @@ export type ResumeState = {
   updateProject: (id: string, patch: Partial<Project>) => void;
   removeProject: (id: string) => void;
 
-  setSkills: (skills: string[]) => void;
+  addSkill: (skill: Omit<Skill, "id">) => void;
+  updateSkill: (id: string, patch: Partial<Skill>) => void;
+  removeSkill: (id: string) => void;
+
+  addCertificate: (cert: Omit<Certificate, "id">) => void;
+  updateCertificate: (id: string, patch: Partial<Certificate>) => void;
+  removeCertificate: (id: string) => void;
+
+  addLanguage: (lang: Omit<Language, "id">) => void;
+  updateLanguage: (id: string, patch: Partial<Language>) => void;
+  removeLanguage: (id: string) => void;
+
   clearAll: () => void;
 };
 
@@ -83,9 +114,12 @@ export const useResumeStore = create<ResumeState>((set) => ({
   educations: [],
   projects: [],
   skills: [],
+  certificates: [],
+  languages: [],
 
   setPersonal: (payload) => set((s) => ({ ...s, ...payload })),
 
+  // Experience
   addExperience: (exp) =>
     set((s) => ({
       experiences: [
@@ -102,25 +136,24 @@ export const useResumeStore = create<ResumeState>((set) => ({
         },
       ],
     })),
-
   updateExperience: (idToUpdate, patch) =>
     set((s) => ({
       experiences: s.experiences.map((e) =>
         e.id === idToUpdate ? { ...e, ...patch } : e
       ),
     })),
-
   removeExperience: (idToRemove) =>
     set((s) => ({
       experiences: s.experiences.filter((e) => e.id !== idToRemove),
     })),
 
+  // Education
   addEducation: (edu) =>
     set((s) => ({
       educations: [
         ...s.educations,
         {
-          id: id(), // unique ID for UI
+          id: id(),
           degree: edu.degree?.trim() || "",
           institution: edu.institution?.trim() || "",
           location: edu.location?.trim() || "",
@@ -131,20 +164,18 @@ export const useResumeStore = create<ResumeState>((set) => ({
         },
       ],
     })),
-
   updateEducation: (idToUpdate, patch) =>
     set((s) => ({
       educations: s.educations.map((x) =>
         x.id === idToUpdate ? { ...x, ...patch } : x
       ),
     })),
-
   removeEducation: (idToRemove) =>
     set((s) => ({
       educations: s.educations.filter((x) => x.id !== idToRemove),
     })),
 
-
+  // Project
   addProject: (proj) =>
     set((s) => ({
       projects: [
@@ -160,21 +191,66 @@ export const useResumeStore = create<ResumeState>((set) => ({
         },
       ],
     })),
-
   updateProject: (idToUpdate, patch) =>
     set((s) => ({
       projects: s.projects.map((p) =>
         p.id === idToUpdate ? { ...p, ...patch } : p
       ),
     })),
-
   removeProject: (idToRemove) =>
     set((s) => ({
       projects: s.projects.filter((p) => p.id !== idToRemove),
     })),
 
-  setSkills: (skills) => set(() => ({ skills })),
+  // Skills
+  addSkill: (skill) =>
+    set((s) => ({
+      skills: [...s.skills, { id: id(), ...skill }],
+    })),
+  updateSkill: (idToUpdate, patch) =>
+    set((s) => ({
+      skills: s.skills.map((sItem) =>
+        sItem.id === idToUpdate ? { ...sItem, ...patch } : sItem
+      ),
+    })),
+  removeSkill: (idToRemove) =>
+    set((s) => ({
+      skills: s.skills.filter((sItem) => sItem.id !== idToRemove),
+    })),
 
+  // Certificates
+  addCertificate: (cert) =>
+    set((s) => ({
+      certificates: [...s.certificates, { id: id(), ...cert }],
+    })),
+  updateCertificate: (idToUpdate, patch) =>
+    set((s) => ({
+      certificates: s.certificates.map((c) =>
+        c.id === idToUpdate ? { ...c, ...patch } : c
+      ),
+    })),
+  removeCertificate: (idToRemove) =>
+    set((s) => ({
+      certificates: s.certificates.filter((c) => c.id !== idToRemove),
+    })),
+
+  // Languages
+  addLanguage: (lang) =>
+    set((s) => ({
+      languages: [...s.languages, { id: id(), ...lang }],
+    })),
+  updateLanguage: (idToUpdate, patch) =>
+    set((s) => ({
+      languages: s.languages.map((l) =>
+        l.id === idToUpdate ? { ...l, ...patch } : l
+      ),
+    })),
+  removeLanguage: (idToRemove) =>
+    set((s) => ({
+      languages: s.languages.filter((l) => l.id !== idToRemove),
+    })),
+
+  // Clear all
   clearAll: () =>
     set(() => ({
       fullName: "",
@@ -190,5 +266,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
       educations: [],
       projects: [],
       skills: [],
+      certificates: [],
+      languages: [],
     })),
 }));
