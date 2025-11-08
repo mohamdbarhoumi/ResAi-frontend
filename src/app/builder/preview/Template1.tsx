@@ -13,26 +13,26 @@ import {
 
 const styles = StyleSheet.create({
   page: { 
-    padding: 40, 
-    fontSize: 12, 
+    padding: 30,  // reduced from 40
+    fontSize: 11,  // reduced from 12
     fontFamily: "Helvetica", 
     color: "#000" 
   },
 
   header: { 
-    marginBottom: 16,
+    marginBottom: 10,  // reduced from 16
     textAlign: "center" 
   },
 
   name: { 
-    fontSize: 29, 
-    marginBottom: 4, 
+    fontSize: 26,  // reduced from 29
+    marginBottom: 2,  // reduced from 4
     color: "#000" 
   },
 
   jobTitle: { 
-    fontSize: 15, 
-    marginBottom: 6,
+    fontSize: 13,  // reduced from 15
+    marginBottom: 4,  // reduced from 6
     color: "#000" 
   },
 
@@ -40,18 +40,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     flexWrap: "wrap",
-    fontSize: 11,
-    marginTop: 4,
+    fontSize: 10,  // reduced from 11
+    marginTop: 2,  // reduced from 4
   },
 
   contactItem: { 
-    marginHorizontal: 10,
+    marginHorizontal: 8,  // reduced from 10
     color: "#000" 
   },
 
   contactItemWithIcon: { 
     flexDirection: "row", 
-    marginHorizontal: 10
+    marginHorizontal: 8  // reduced from 10
   },
 
   link: { 
@@ -60,103 +60,104 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 12,
-    marginTop: 15,
-    marginBottom: 8,
-    paddingBottom: 4,
-    borderBottom: "2 solid #000",
+    fontSize: 11,  // reduced from 12
+    marginTop: 10,  // reduced from 15
+    marginBottom: 6,  // reduced from 8
+    paddingBottom: 3,  // reduced from 4
+    borderBottom: "1.5 solid #000",  // slightly thinner
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 0.5,  // reduced from 1
   },
 
   summaryText: { 
     fontSize: 10, 
-    lineHeight: 1.5, 
+    lineHeight: 1.4,  // reduced from 1.5
     textAlign: "justify", 
     color: "#000",
-    marginBottom: 12
+    marginBottom: 8  // reduced from 12
   },
 
   educationItem: { 
-    marginBottom: 10
+    marginBottom: 8  // reduced from 10
   },
 
   degreeTitle: { 
-    fontSize: 11, 
-    marginBottom: 2, 
+    fontSize: 10,  // reduced from 11
+    marginBottom: 1,  // reduced from 2
     color: "#000" 
   },
 
   universityName: { 
-    fontSize: 10, 
+    fontSize: 9,  // reduced from 10
     color: "#555", 
-    marginBottom: 1
+    marginBottom: 0.5  // reduced from 1
   },
 
   dateLocation: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
-    fontSize: 9, 
+    fontSize: 8,  // reduced from 9
     fontStyle: "italic", 
     color: "#666",
-    marginBottom: 8
+    marginBottom: 6
   },
 
   item: { 
-    marginBottom: 14
+    marginBottom: 10  // reduced from 14
   },
 
   titleText: { 
-    fontSize: 11, 
-    marginBottom: 2, 
+    fontSize: 10,  // reduced from 11
+    marginBottom: 1,  // reduced from 2
     color: "#000" 
   },
 
   secondaryText: { 
-    fontSize: 10, 
+    fontSize: 9,  // reduced from 10
     color: "#555", 
-    marginBottom: 3
+    marginBottom: 2  // reduced from 3
   },
 
   dateLocationRow: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
-    fontSize: 9, 
+    fontSize: 8,  // reduced from 9
     fontStyle: "italic", 
     color: "#666", 
-    marginBottom: 6
+    marginBottom: 4  // reduced from 6
   },
 
   bulletPoint: { 
     flexDirection: "row",
-    marginBottom: 4,
-    paddingLeft: 10 
+    marginBottom: 3,  // reduced from 4
+    paddingLeft: 8  // reduced from 10
   },
 
   bullet: { 
-    width: 15, 
-    fontSize: 10 
+    width: 12,  // reduced from 15
+    fontSize: 9  // reduced from 10
   },
+  
   bulletText: { 
     flex: 1, 
-    fontSize: 10, 
-    lineHeight: 1.4 
+    fontSize: 9,  // reduced from 10
+    lineHeight: 1.3  // reduced from 1.4
   },
 
   skillsContainer: { 
     flexDirection: "row", 
     flexWrap: "wrap", 
-    marginTop: 6
+    marginTop: 4  // reduced from 6
   },
 
   skillBadge: { 
     backgroundColor: "#f0f0f0", 
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    marginRight: 8, 
-    marginBottom: 6,
-    borderRadius: 3, 
-    fontSize: 9
+    paddingHorizontal: 7,  // reduced from 9
+    paddingVertical: 3,  // reduced from 4
+    marginRight: 6,  // reduced from 8
+    marginBottom: 4,  // reduced from 6
+    borderRadius: 2,  // reduced from 3
+    fontSize: 8  // reduced from 9
   },
 
   projectLink: {
