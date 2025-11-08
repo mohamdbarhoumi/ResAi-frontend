@@ -12,7 +12,6 @@ import {
 } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
-
   page: { 
     padding: 40, 
     fontSize: 12, 
@@ -21,7 +20,7 @@ const styles = StyleSheet.create({
   },
 
   header: { 
-    marginBottom: 16,          // reduced from 20 → tighter to next section
+    marginBottom: 16,
     textAlign: "center" 
   },
 
@@ -33,7 +32,7 @@ const styles = StyleSheet.create({
 
   jobTitle: { 
     fontSize: 15, 
-    marginBottom: 6,           // reduced from 8 → consistent with name
+    marginBottom: 6,
     color: "#000" 
   },
 
@@ -42,17 +41,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexWrap: "wrap",
     fontSize: 11,
-    marginTop: 4,              // reduced from 5 → tighter
+    marginTop: 4,
   },
 
   contactItem: { 
-    marginHorizontal: 10,      // increased from 8 → balanced spacing
+    marginHorizontal: 10,
     color: "#000" 
   },
 
   contactItemWithIcon: { 
     flexDirection: "row", 
-    marginHorizontal: 10       // same as above
+    marginHorizontal: 10
   },
 
   link: { 
@@ -62,8 +61,8 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontSize: 12,
-    marginTop: 15,             // increased from 8 → clear section start
-    marginBottom: 8,           // reduced from 12 → balanced with content
+    marginTop: 15,
+    marginBottom: 8,
     paddingBottom: 4,
     borderBottom: "2 solid #000",
     textTransform: "uppercase",
@@ -74,12 +73,12 @@ const styles = StyleSheet.create({
     fontSize: 10, 
     lineHeight: 1.5, 
     textAlign: "justify", 
-    color: " #000",
-    marginBottom: 12           // added → space before next section
+    color: "#000",
+    marginBottom: 12
   },
 
   educationItem: { 
-    marginBottom: 10           // reduced from 12 → consistent
+    marginBottom: 10
   },
 
   degreeTitle: { 
@@ -91,7 +90,7 @@ const styles = StyleSheet.create({
   universityName: { 
     fontSize: 10, 
     color: "#555", 
-    marginBottom: 1            // reduced from 2 → tighter
+    marginBottom: 1
   },
 
   dateLocation: { 
@@ -100,11 +99,11 @@ const styles = StyleSheet.create({
     fontSize: 9, 
     fontStyle: "italic", 
     color: "#666",
-    marginBottom: 8            // added → space before next item
+    marginBottom: 8
   },
 
   item: { 
-    marginBottom: 14           // reduced from 15 → consistent
+    marginBottom: 14
   },
 
   titleText: { 
@@ -116,7 +115,7 @@ const styles = StyleSheet.create({
   secondaryText: { 
     fontSize: 10, 
     color: "#555", 
-    marginBottom: 3            // increased from 1 → breathing room
+    marginBottom: 3
   },
 
   dateLocationRow: { 
@@ -125,12 +124,12 @@ const styles = StyleSheet.create({
     fontSize: 9, 
     fontStyle: "italic", 
     color: "#666", 
-    marginBottom: 6            // increased from 5 → consistent
+    marginBottom: 6
   },
 
   bulletPoint: { 
     flexDirection: "row",
-    marginBottom: 4,           // increased from 3 → better line spacing
+    marginBottom: 4,
     paddingLeft: 10 
   },
 
@@ -147,19 +146,23 @@ const styles = StyleSheet.create({
   skillsContainer: { 
     flexDirection: "row", 
     flexWrap: "wrap", 
-    marginTop: 6               // increased from 5 → align with section rhythm
+    marginTop: 6
   },
 
   skillBadge: { 
     backgroundColor: "#f0f0f0", 
-    paddingHorizontal: 9,      // reduced from 10 → tighter
-    paddingVertical: 4,        // reduced from 5 → tighter
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     marginRight: 8, 
-    marginBottom: 6,           // reduced from 8 → consistent
+    marginBottom: 6,
     borderRadius: 3, 
     fontSize: 9
   },
 
+  projectLink: {
+    color: "#0066cc",
+    textDecoration: "underline"
+  },
 });
 
 const renderBullets = (bullets: any[] = []) =>
@@ -177,7 +180,7 @@ export function MyResumePDF({ data }: { data: any }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-         {/* Header */}
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{data.fullName || "John Doe"}</Text>
           <Text style={styles.jobTitle}>
@@ -262,13 +265,40 @@ export function MyResumePDF({ data }: { data: any }) {
         {data.projects?.length > 0 && (
           <View>
             <Text style={styles.sectionTitle}>PROJECTS</Text>
+
             {data.projects.map((proj: any, idx: number) => (
               <View key={proj.id ?? idx} style={styles.item}>
+
+                {/* Title + Date with Link Icon */}
                 <View style={styles.dateLocationRow}>
-                  <Text style={styles.titleText}>{proj.title}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text style={styles.titleText}>{proj.title}</Text>
+                    {proj.link && (
+                      <Link src={proj.link} style={{ marginLeft: 6 }}>
+                        <Svg width="10" height="10" viewBox="0 0 24 24" style={{ marginTop: 2 }}>
+                          <Path
+                            d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6m4-3h6v6m-11-2.5L21 3"
+                            fill="none"
+                            stroke="#0066cc"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </Svg>
+                      </Link>
+                    )}
+                  </View>
                   <Text>{proj.startDate ?? ""} – {proj.endDate ?? ""}</Text>
                 </View>
-                {proj.tech?.length > 0 && <Text style={styles.secondaryText}>{proj.tech.join(", ")}</Text>}
+
+                {/* Tech - under the link */}
+                {proj.tech?.length > 0 && (
+                  <Text style={styles.secondaryText}>
+                    {proj.tech.join(" | ")}
+                  </Text>
+                )}
+
+                {/* Bullets */}
                 {renderBullets(proj.bullets)}
               </View>
             ))}
@@ -276,35 +306,35 @@ export function MyResumePDF({ data }: { data: any }) {
         )}
 
         {/* Education */}
-{data.educations?.length > 0 && (
-  <View>
-    <Text style={styles.sectionTitle}>EDUCATION</Text>
-    {data.educations.map((edu: any, idx: number) => (
-      <View key={edu.id ?? idx} style={styles.item}> 
-        <View style={styles.dateLocationRow}> 
-          <Text style={styles.titleText}>{edu.degree}</Text>
-          <Text>{edu.startDate} – {edu.endDate ?? "Present"}</Text>
-        </View>
-        <Text style={styles.secondaryText}>
-          {edu.institution}
-          {edu.location ? `, ${edu.location}` : ""}
-        </Text> 
-      </View>
-    ))}
-  </View>
-)}
+        {data.educations?.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>EDUCATION</Text>
+            {data.educations.map((edu: any, idx: number) => (
+              <View key={edu.id ?? idx} style={styles.item}> 
+                <View style={styles.dateLocationRow}> 
+                  <Text style={styles.titleText}>{edu.degree}</Text>
+                  <Text>{edu.startDate} – {edu.endDate ?? "Present"}</Text>
+                </View>
+                <Text style={styles.secondaryText}>
+                  {edu.institution}
+                  {edu.location ? `, ${edu.location}` : ""}
+                </Text> 
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Skills Section */}
-    {data.skills && data.skills.length > 0 && (
-      <View>
-        <Text style={styles.sectionTitle}>Skills</Text>
-        <Text>
-          {data.skills.map(s => `• ${s.name}`).join("   ")}
-        </Text>
-      </View>
-    )}
+        {data.skills && data.skills.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Skills</Text>
+            <Text>
+              {data.skills.map(s => `• ${s.name}`).join("   ")}
+            </Text>
+          </View>
+        )}
 
-    {/* Certificates */}
+        {/* Certificates */}
         {data.certificates.length > 0 && (
           <View>
             <Text style={styles.sectionTitle}>Certificates</Text>

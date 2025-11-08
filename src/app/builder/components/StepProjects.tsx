@@ -1,7 +1,7 @@
 "use client";
 
 import { useResumeStore } from "../store/resumeStore";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 import { Plus, Trash2, Link as LinkIcon } from "lucide-react";
 
 export default function StepProjects() {
@@ -9,6 +9,9 @@ export default function StepProjects() {
   const addProject = useResumeStore((s) => s.addProject);
   const updateProject = useResumeStore((s) => s.updateProject);
   const removeProject = useResumeStore((s) => s.removeProject);
+
+  // Track tech input state per project
+  const [techInput, setTechInput] = useState<{ [key: string]: string }>({});
 
   const onChange =
     (id: string, key: string) =>
@@ -53,8 +56,20 @@ export default function StepProjects() {
   };
 
   const handleTechChange = (projId: string, value: string) => {
-    const techArray = value.split(",").map((t) => t.trim()).filter(Boolean);
+    // Update the input state
+    setTechInput((prev) => ({ ...prev, [projId]: value }));
+
+    // Update the store with parsed array
+    const techArray = value.length > 0
+      ? value.split(",").map((t) => t.trim()).filter(Boolean)
+      : [];
+
     updateProject(projId, { tech: techArray });
+  };
+
+  const getTechInput = (projId: string, tech: string[]) => {
+    // Use the local state if available, otherwise use the stored array
+    return techInput[projId] !== undefined ? techInput[projId] : tech.join(", ");
   };
 
   return (
@@ -118,7 +133,7 @@ export default function StepProjects() {
           <div>
             <label className="text-sm text-gray-600">Technologies (comma-separated)</label>
             <input
-              value={proj.tech.join(", ")}
+              value={getTechInput(proj.id, proj.tech)}
               onChange={(e) => handleTechChange(proj.id, e.target.value)}
               placeholder="e.g., React, TypeScript, Tailwind"
               className="input mt-1"
