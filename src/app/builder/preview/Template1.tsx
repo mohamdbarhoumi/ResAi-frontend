@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
 
   header: { 
-    marginBottom: 20, 
+    marginBottom: 16,          // reduced from 20 → tighter to next section
     textAlign: "center" 
   },
 
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 
   jobTitle: { 
     fontSize: 15, 
-    marginBottom: 8, 
+    marginBottom: 6,           // reduced from 8 → consistent with name
     color: "#000" 
   },
 
@@ -42,17 +42,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexWrap: "wrap",
     fontSize: 11,
-    marginTop: 5,
+    marginTop: 4,              // reduced from 5 → tighter
   },
 
   contactItem: { 
-    marginHorizontal: 8, 
+    marginHorizontal: 10,      // increased from 8 → balanced spacing
     color: "#000" 
   },
 
   contactItemWithIcon: { 
     flexDirection: "row", 
-    marginHorizontal: 8 
+    marginHorizontal: 10       // same as above
   },
 
   link: { 
@@ -62,8 +62,8 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontSize: 12,
-    marginTop: 8,
-    marginBottom: 8,
+    marginTop: 15,             // increased from 8 → clear section start
+    marginBottom: 8,           // reduced from 12 → balanced with content
     paddingBottom: 4,
     borderBottom: "2 solid #000",
     textTransform: "uppercase",
@@ -74,11 +74,12 @@ const styles = StyleSheet.create({
     fontSize: 10, 
     lineHeight: 1.5, 
     textAlign: "justify", 
-    color: "#000" 
+    color: " #000",
+    marginBottom: 12           // added → space before next section
   },
 
   educationItem: { 
-    marginBottom: 12 
+    marginBottom: 10           // reduced from 12 → consistent
   },
 
   degreeTitle: { 
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   universityName: { 
     fontSize: 10, 
     color: "#555", 
-    marginBottom: 2 
+    marginBottom: 1            // reduced from 2 → tighter
   },
 
   dateLocation: { 
@@ -98,11 +99,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between", 
     fontSize: 9, 
     fontStyle: "italic", 
-    color: "#666" 
+    color: "#666",
+    marginBottom: 8            // added → space before next item
   },
 
   item: { 
-    marginBottom: 15 
+    marginBottom: 14           // reduced from 15 → consistent
   },
 
   titleText: { 
@@ -114,7 +116,7 @@ const styles = StyleSheet.create({
   secondaryText: { 
     fontSize: 10, 
     color: "#555", 
-    marginBottom: 2 
+    marginBottom: 3            // increased from 1 → breathing room
   },
 
   dateLocationRow: { 
@@ -123,12 +125,12 @@ const styles = StyleSheet.create({
     fontSize: 9, 
     fontStyle: "italic", 
     color: "#666", 
-    marginBottom: 5 
+    marginBottom: 6            // increased from 5 → consistent
   },
 
   bulletPoint: { 
     flexDirection: "row",
-    marginBottom: 3, 
+    marginBottom: 4,           // increased from 3 → better line spacing
     paddingLeft: 10 
   },
 
@@ -145,15 +147,15 @@ const styles = StyleSheet.create({
   skillsContainer: { 
     flexDirection: "row", 
     flexWrap: "wrap", 
-    marginTop: 5 
+    marginTop: 6               // increased from 5 → align with section rhythm
   },
 
   skillBadge: { 
     backgroundColor: "#f0f0f0", 
-    paddingHorizontal: 10, 
-    paddingVertical: 5, 
+    paddingHorizontal: 9,      // reduced from 10 → tighter
+    paddingVertical: 4,        // reduced from 5 → tighter
     marginRight: 8, 
-    marginBottom: 8, 
+    marginBottom: 6,           // reduced from 8 → consistent
     borderRadius: 3, 
     fontSize: 9
   },
@@ -274,35 +276,37 @@ export function MyResumePDF({ data }: { data: any }) {
         )}
 
         {/* Education */}
-        {data.educations?.length > 0 && (
-          <View>
-            <Text style={styles.sectionTitle}>EDUCATION</Text>
-            {data.educations.map((edu: any, idx: number) => (
-              <View key={edu.id ?? idx} style={styles.educationItem}>
-                <Text style={styles.degreeTitle}>{edu.degree}</Text>
-                <Text style={styles.universityName}>{edu.institution}</Text>
-                <View style={styles.dateLocation}>
-                  <Text>{edu.location ?? ""}</Text>
-                  <Text>{edu.startDate} – {edu.endDate ?? "Present"}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
+{data.educations?.length > 0 && (
+  <View>
+    <Text style={styles.sectionTitle}>EDUCATION</Text>
+    {data.educations.map((edu: any, idx: number) => (
+      <View key={edu.id ?? idx} style={styles.item}> 
+        <View style={styles.dateLocationRow}> 
+          <Text style={styles.titleText}>{edu.degree}</Text>
+          <Text>{edu.startDate} – {edu.endDate ?? "Present"}</Text>
+        </View>
+        <Text style={styles.secondaryText}>
+          {edu.institution}
+          {edu.location ? `, ${edu.location}` : ""}
+        </Text> 
+      </View>
+    ))}
+  </View>
+)}
 
         {/* Skills Section */}
     {data.skills && data.skills.length > 0 && (
       <View>
         <Text style={styles.sectionTitle}>Skills</Text>
         <Text>
-          Skills: {data.skills.map((s: { id: string; name: string }) => s.name).join(", ")}
+          {data.skills.map(s => `• ${s.name}`).join("   ")}
         </Text>
       </View>
     )}
 
     {/* Certificates */}
         {data.certificates.length > 0 && (
-          <View style={styles.section}>
+          <View>
             <Text style={styles.sectionTitle}>Certificates</Text>
             {data.certificates.map((c) => (
               <Text key={c.id} style={styles.item}>
