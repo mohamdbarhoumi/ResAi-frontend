@@ -12,10 +12,31 @@ import {
 } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 12, fontFamily: "Helvetica", color: "#000" },
-  header: { marginBottom: 20, textAlign: "center" },
-  name: { fontSize: 29, marginBottom: 4, color: "#000" },
-  jobTitle: { fontSize: 15, marginBottom: 8, color: "#000" },
+
+  page: { 
+    padding: 40, 
+    fontSize: 12, 
+    fontFamily: "Helvetica", 
+    color: "#000" 
+  },
+
+  header: { 
+    marginBottom: 20, 
+    textAlign: "center" 
+  },
+
+  name: { 
+    fontSize: 29, 
+    marginBottom: 4, 
+    color: "#000" 
+  },
+
+  jobTitle: { 
+    fontSize: 15, 
+    marginBottom: 8, 
+    color: "#000" 
+  },
+
   contactRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -23,9 +44,22 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 5,
   },
-  contactItem: { marginHorizontal: 8, color: "#000" },
-  contactItemWithIcon: { flexDirection: "row", marginHorizontal: 8 },
-  link: { color: "#000", textDecoration: "none" },
+
+  contactItem: { 
+    marginHorizontal: 8, 
+    color: "#000" 
+  },
+
+  contactItemWithIcon: { 
+    flexDirection: "row", 
+    marginHorizontal: 8 
+  },
+
+  link: { 
+    color: "#000", 
+    textDecoration: "none" 
+  },
+
   sectionTitle: {
     fontSize: 12,
     marginTop: 15,
@@ -35,20 +69,95 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  summaryText: { fontSize: 10, lineHeight: 1.5, textAlign: "justify", color: "#000" },
-  educationItem: { marginBottom: 12 },
-  degreeTitle: { fontSize: 11, marginBottom: 2, color: "#000" },
-  universityName: { fontSize: 10, color: "#555", marginBottom: 2 },
-  dateLocation: { flexDirection: "row", justifyContent: "space-between", fontSize: 9, fontStyle: "italic", color: "#666" },
-  item: { marginBottom: 15 },
-  titleText: { fontSize: 11, marginBottom: 2, color: "#000" },
-  secondaryText: { fontSize: 10, color: "#555", marginBottom: 2 },
-  dateLocationRow: { flexDirection: "row", justifyContent: "space-between", fontSize: 9, fontStyle: "italic", color: "#666", marginBottom: 5 },
-  bulletPoint: { flexDirection: "row", marginBottom: 3, paddingLeft: 10 },
-  bullet: { width: 15, fontSize: 10 },
-  bulletText: { flex: 1, fontSize: 10, lineHeight: 1.4 },
-  skillsContainer: { flexDirection: "row", flexWrap: "wrap", marginTop: 5 },
-  skillBadge: { backgroundColor: "#f0f0f0", paddingHorizontal: 10, paddingVertical: 5, marginRight: 8, marginBottom: 8, borderRadius: 3, fontSize: 9 },
+
+  summaryText: { 
+    fontSize: 10, 
+    lineHeight: 1.5, 
+    textAlign: "justify", 
+    color: "#000" 
+  },
+
+  educationItem: { 
+    marginBottom: 12 
+  },
+
+  degreeTitle: { 
+    fontSize: 11, 
+    marginBottom: 2, 
+    color: "#000" 
+  },
+
+  universityName: { 
+    fontSize: 10, 
+    color: "#555", 
+    marginBottom: 2 
+  },
+
+  dateLocation: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    fontSize: 9, 
+    fontStyle: "italic", 
+    color: "#666" 
+  },
+
+  item: { 
+    marginBottom: 15 
+  },
+
+  titleText: { 
+    fontSize: 11, 
+    marginBottom: 2, 
+    color: "#000" 
+  },
+
+  secondaryText: { 
+    fontSize: 10, 
+    color: "#555", 
+    marginBottom: 2 
+  },
+
+  dateLocationRow: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    fontSize: 9, 
+    fontStyle: "italic", 
+    color: "#666", 
+    marginBottom: 5 
+  },
+
+  bulletPoint: { 
+    flexDirection: "row",
+    marginBottom: 3, 
+    paddingLeft: 10 
+  },
+
+  bullet: { 
+    width: 15, 
+    fontSize: 10 
+  },
+  bulletText: { 
+    flex: 1, 
+    fontSize: 10, 
+    lineHeight: 1.4 
+  },
+
+  skillsContainer: { 
+    flexDirection: "row", 
+    flexWrap: "wrap", 
+    marginTop: 5 
+  },
+
+  skillBadge: { 
+    backgroundColor: "#f0f0f0", 
+    paddingHorizontal: 10, 
+    paddingVertical: 5, 
+    marginRight: 8, 
+    marginBottom: 8, 
+    borderRadius: 3, 
+    fontSize: 9
+  },
+  
 });
 
 const renderBullets = (bullets: any[] = []) =>

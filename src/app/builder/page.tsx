@@ -9,6 +9,7 @@ import Navbar from "../components/Navbar";
 import StepExperience from "./components/StepExperience";
 import StepProjects from "./components/StepProjects";
 import dynamic from "next/dynamic";
+import StepEducation  from "./components/StepEducation";
 
 // Create a wrapper component for the PDF Preview
 const PDFPreviewWrapper = dynamic(
@@ -44,6 +45,8 @@ export default function ResumeBuilderPage() {
         return <StepExperience />;
       case "Projects":
         return <StepProjects />;
+      case "Education":
+        return <StepEducation/>;
       default:
         return (
           <div className="text-gray-500">

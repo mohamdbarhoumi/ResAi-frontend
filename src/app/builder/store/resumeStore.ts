@@ -13,11 +13,14 @@ export type Experience = {
 };
 
 export type Education = {
-  id: string;
-  degree: string;
-  institution: string;
-  startDate: string;
-  endDate: string;
+  id: string;                  
+  degree: string;              
+  institution: string;         
+  location: string;            
+  startDate: string;           
+  endDate: string;             
+  gpa?: string;                
+  honors?: string;                  
 };
 
 export type Project = {
@@ -117,11 +120,14 @@ export const useResumeStore = create<ResumeState>((set) => ({
       educations: [
         ...s.educations,
         {
-          id: id(),
-          degree: edu.degree || "",
-          institution: edu.institution || "",
-          startDate: edu.startDate || "",
-          endDate: edu.endDate || "",
+          id: id(), // unique ID for UI
+          degree: edu.degree?.trim() || "",
+          institution: edu.institution?.trim() || "",
+          location: edu.location?.trim() || "",
+          startDate: edu.startDate?.trim() || "",
+          endDate: edu.endDate?.trim() || "",
+          gpa: edu.gpa?.trim() || "",
+          honors: edu.honors?.trim() || "",
         },
       ],
     })),
@@ -137,6 +143,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
     set((s) => ({
       educations: s.educations.filter((x) => x.id !== idToRemove),
     })),
+
 
   addProject: (proj) =>
     set((s) => ({
