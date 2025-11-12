@@ -6,8 +6,9 @@ import { useAuthGuard } from "../hooks/useAuthGuard";
 import Image from "next/image";
 
 export default function TemplatesPage() {
-  const router = useRouter();
   useAuthGuard()
+  const router = useRouter();
+  
   
 
   return (

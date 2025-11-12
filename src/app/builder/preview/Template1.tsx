@@ -152,12 +152,12 @@ const styles = StyleSheet.create({
 
   skillBadge: { 
     backgroundColor: "#f0f0f0", 
-    paddingHorizontal: 7,  // reduced from 9
-    paddingVertical: 3,  // reduced from 4
-    marginRight: 6,  // reduced from 8
-    marginBottom: 4,  // reduced from 6
-    borderRadius: 2,  // reduced from 3
-    fontSize: 8  // reduced from 9
+    paddingHorizontal: 7,  
+    paddingVertical: 3,  
+    marginRight: 6,  
+    marginBottom: 4,  
+    borderRadius: 2,  
+    fontSize: 8 
   },
 
   projectLink: {

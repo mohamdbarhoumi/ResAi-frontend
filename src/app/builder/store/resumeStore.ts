@@ -52,6 +52,7 @@ export type Language = {
 };
 
 export type ResumeState = {
+  id?: string;
   fullName: string;
   title: string;
   email: string;
