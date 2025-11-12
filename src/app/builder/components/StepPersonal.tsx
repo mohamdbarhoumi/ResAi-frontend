@@ -1,7 +1,9 @@
 "use client";
 
 import { useResumeStore } from "../store/resumeStore";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
+import { Sparkles } from "lucide-react";
+import AIModal from "./AiModal";
 
 export default function StepPersonal() {
   const fullName = useResumeStore((s) => s.fullName);
@@ -16,11 +18,17 @@ export default function StepPersonal() {
 
   const setPersonal = useResumeStore((s) => s.setPersonal);
 
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+
   const onChange =
     (key: keyof Parameters<typeof setPersonal>[0]) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setPersonal({ [key]: e.target.value });
     };
+
+  const handleAIGenerate = (generatedSummary: string) => {
+    setPersonal({ summary: generatedSummary });
+  };
 
   return (
     <div className="space-y-4">
@@ -50,9 +58,30 @@ export default function StepPersonal() {
         <input value={location} onChange={onChange("location")} className="input mt-1"/>
       </div>
 
+      {/* Professional Summary with AI */}
       <div>
-        <label className="text-sm text-gray-600">Summary</label>
-        <textarea value={summary} onChange={onChange("summary")} rows={4} className="input mt-1"/>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm text-gray-600">Professional Summary</label>
+          <button
+            onClick={() => setIsAIModalOpen(true)}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            <Sparkles className="w-4 h-4" />
+            Generate with AI
+          </button>
+        </div>
+        <textarea 
+          value={summary} 
+          onChange={onChange("summary")} 
+          rows={4} 
+          className="input mt-1"
+          placeholder="A brief summary of your professional background and goals..."
+        />
+        {!summary && (
+          <p className="text-xs text-gray-500 mt-1">
+            💡 Click &quot;Generate with AI&quot; to create a professional summary based on your background
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -69,6 +98,14 @@ export default function StepPersonal() {
           <input value={linkedin} onChange={onChange("linkedin")} className="input mt-1"/>
         </div>
       </div>
+
+      {/* AI Modal */}
+      <AIModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        onApply={handleAIGenerate}
+        type="summary"
+      />
     </div>
   );
 }

@@ -1,14 +1,23 @@
 "use client";
 
 import { useResumeStore } from "../store/resumeStore";
-import { ChangeEvent } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { ChangeEvent, useState } from "react";
+import { Plus, Trash2, Sparkles } from "lucide-react";
+import AIModal from "./AiModal";
 
 export default function StepExperience() {
   const experiences = useResumeStore((s) => s.experiences);
   const addExperience = useResumeStore((s) => s.addExperience);
   const updateExperience = useResumeStore((s) => s.updateExperience);
   const removeExperience = useResumeStore((s) => s.removeExperience);
+
+  const [aiModalState, setAiModalState] = useState<{
+    isOpen: boolean;
+    experienceId: string | null;
+  }>({
+    isOpen: false,
+    experienceId: null,
+  });
 
   const onChange =
     (id: string, key: string) =>
@@ -55,6 +64,35 @@ export default function StepExperience() {
     if (!exp) return;
     const updatedBullets = exp.bullets.filter((b) => b.id !== bulletId);
     updateExperience(expId, { bullets: updatedBullets });
+  };
+
+  const handleOpenAIModal = (expId: string) => {
+    setAiModalState({ isOpen: true, experienceId: expId });
+  };
+
+  const handleAIGenerate = (generatedBullets: string) => {
+    if (!aiModalState.experienceId) return;
+
+    // Parse the generated bullets (format: "• bullet1\n• bullet2\n• bullet3")
+    const bulletLines = generatedBullets
+      .split("\n")
+      .filter((line) => line.trim().startsWith("•"))
+      .map((line) => line.trim().substring(1).trim())
+      .filter((text) => text.length > 0);
+
+    const newBullets = bulletLines.map((text) => ({
+      id: Math.random().toString(36).slice(2, 9),
+      text,
+    }));
+
+    updateExperience(aiModalState.experienceId, { bullets: newBullets });
+
+    setAiModalState({ isOpen: false, experienceId: null });
+  };
+
+  const getCurrentExperience = () => {
+    if (!aiModalState.experienceId) return null;
+    return experiences.find((exp) => exp.id === aiModalState.experienceId);
   };
 
   return (
@@ -121,7 +159,7 @@ export default function StepExperience() {
               <input
                 value={exp.startDate}
                 onChange={onChange(exp.id, "startDate")}
-                placeholder="e.g., Jan 2024"
+                placeholder="e.g., Jan 2022"
                 className="input mt-1"
               />
             </div>
@@ -130,43 +168,52 @@ export default function StepExperience() {
               <input
                 value={exp.endDate}
                 onChange={onChange(exp.id, "endDate")}
-                placeholder="e.g., Present"
+                placeholder="e.g., Dec 2023 / Present"
                 className="input mt-1"
               />
             </div>
           </div>
 
           {/* Bullets */}
-          <div>
-            <label className="text-sm text-gray-600">Key Achievements</label>
-            <div className="space-y-2 mt-2">
-              {exp.bullets.map((b) => (
-                <div key={b.id} className="flex items-center gap-2">
-                  <textarea
-                    value={b.text}
-                    onChange={(e) =>
-                      handleBulletChange(exp.id, b.id, e.target.value)
-                    }
-                    placeholder="e.g., Improved load time by 30% using React optimization"
-                    rows={2}
-                    className="input flex-1"
-                  />
-                  <button
-                    onClick={() => handleRemoveBullet(exp.id, b.id)}
-                    className="text-red-500 hover:text-red-700"
-                    title="Remove bullet"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => handleAddBullet(exp.id)}
-                className="text-blue-600 text-sm hover:underline"
-              >
-                + Add Bullet
-              </button>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-gray-600">Key Achievements / Responsibilities</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleAddBullet(exp.id)}
+                  className="text-blue-500 hover:text-blue-700 flex items-center gap-1 text-sm"
+                >
+                  <Plus size={14} /> Add Bullet
+                </button>
+                <button
+                  onClick={() => handleOpenAIModal(exp.id)}
+                  className="text-purple-500 hover:text-purple-700 flex items-center gap-1 text-sm"
+                >
+                  <Sparkles size={14} /> Generate with AI
+                </button>
+              </div>
             </div>
+
+            {exp.bullets.map((b) => (
+              <div key={b.id} className="flex gap-2 items-start">
+                <textarea
+                  value={b.text}
+                  onChange={(e) =>
+                    handleBulletChange(exp.id, b.id, e.target.value)
+                  }
+                  placeholder="Describe your achievement..."
+                  className="input flex-1 mt-1"
+                  rows={2}
+                />
+                <button
+                  onClick={() => handleRemoveBullet(exp.id, b.id)}
+                  className="text-red-400 hover:text-red-600 mt-1"
+                  title="Remove Bullet"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       ))}
@@ -179,6 +226,20 @@ export default function StepExperience() {
         <Plus size={20} />
         Add Experience
       </button>
+
+      {/* AI Modal */}
+      {aiModalState.isOpen && (
+        <AIModal
+          isOpen={aiModalState.isOpen}
+          onClose={() => setAiModalState({ isOpen: false, experienceId: null })}
+          onApply={handleAIGenerate} // ✅ matches AIModalProps
+          type="experience-bullets"
+          context={{
+            role: getCurrentExperience()?.role,
+            company: getCurrentExperience()?.company,
+          }}
+        />
+      )}
     </div>
   );
 }

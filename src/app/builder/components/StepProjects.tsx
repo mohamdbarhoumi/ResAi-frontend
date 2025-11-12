@@ -2,7 +2,8 @@
 
 import { useResumeStore } from "../store/resumeStore";
 import { ChangeEvent, useState } from "react";
-import { Plus, Trash2, Link as LinkIcon } from "lucide-react";
+import { Plus, Trash2, Sparkles } from "lucide-react";
+import AIModal from "./AiModal";
 
 export default function StepProjects() {
   const projects = useResumeStore((s) => s.projects);
@@ -10,8 +11,14 @@ export default function StepProjects() {
   const updateProject = useResumeStore((s) => s.updateProject);
   const removeProject = useResumeStore((s) => s.removeProject);
 
-  // Track tech input state per project
   const [techInput, setTechInput] = useState<{ [key: string]: string }>({});
+  const [aiModalState, setAiModalState] = useState<{
+    isOpen: boolean;
+    projectId: string | null;
+  }>({
+    isOpen: false,
+    projectId: null,
+  });
 
   const onChange =
     (id: string, key: string) =>
@@ -39,7 +46,11 @@ export default function StepProjects() {
     });
   };
 
-  const handleBulletChange = (projId: string, bulletId: string, value: string) => {
+  const handleBulletChange = (
+    projId: string,
+    bulletId: string,
+    value: string
+  ) => {
     const proj = projects.find((x) => x.id === projId);
     if (!proj) return;
     const updatedBullets = proj.bullets.map((b) =>
@@ -56,20 +67,48 @@ export default function StepProjects() {
   };
 
   const handleTechChange = (projId: string, value: string) => {
-    // Update the input state
     setTechInput((prev) => ({ ...prev, [projId]: value }));
-
-    // Update the store with parsed array
-    const techArray = value.length > 0
-      ? value.split(",").map((t) => t.trim()).filter(Boolean)
-      : [];
-
+    const techArray =
+      value.length > 0
+        ? value
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [];
     updateProject(projId, { tech: techArray });
   };
 
   const getTechInput = (projId: string, tech: string[]) => {
-    // Use the local state if available, otherwise use the stored array
-    return techInput[projId] !== undefined ? techInput[projId] : tech.join(", ");
+    return techInput[projId] !== undefined
+      ? techInput[projId]
+      : tech.join(", ");
+  };
+
+  const handleOpenAIModal = (projId: string) => {
+    setAiModalState({ isOpen: true, projectId: projId });
+  };
+
+  const handleAIGenerate = (generatedBullets: string) => {
+    if (!aiModalState.projectId) return;
+
+    const bulletLines = generatedBullets
+      .split("\n")
+      .filter((line) => line.trim().startsWith("•"))
+      .map((line) => line.trim().substring(1).trim())
+      .filter((text) => text.length > 0);
+
+    const newBullets = bulletLines.map((text) => ({
+      id: Math.random().toString(36).slice(2, 9),
+      text,
+    }));
+
+    updateProject(aiModalState.projectId, { bullets: newBullets });
+    setAiModalState({ isOpen: false, projectId: null });
+  };
+
+  const getCurrentProject = () => {
+    if (!aiModalState.projectId) return null;
+    return projects.find((proj) => proj.id === aiModalState.projectId);
   };
 
   return (
@@ -98,7 +137,9 @@ export default function StepProjects() {
 
           {/* Link */}
           <div>
-            <label className="text-sm text-gray-600">Project Link (optional)</label>
+            <label className="text-sm text-gray-600">
+              Project Link (optional)
+            </label>
             <input
               value={proj.link || ""}
               onChange={onChange(proj.id, "link")}
@@ -131,7 +172,9 @@ export default function StepProjects() {
 
           {/* Technologies */}
           <div>
-            <label className="text-sm text-gray-600">Technologies (comma-separated)</label>
+            <label className="text-sm text-gray-600">
+              Technologies (comma-separated)
+            </label>
             <input
               value={getTechInput(proj.id, proj.tech)}
               onChange={(e) => handleTechChange(proj.id, e.target.value)}
@@ -141,34 +184,47 @@ export default function StepProjects() {
           </div>
 
           {/* Bullets */}
-          <div>
-            <label className="text-sm text-gray-600">Key Features / Achievements</label>
-            <div className="space-y-2 mt-2">
-              {proj.bullets.map((b) => (
-                <div key={b.id} className="flex items-center gap-2">
-                  <textarea
-                    value={b.text}
-                    onChange={(e) => handleBulletChange(proj.id, b.id, e.target.value)}
-                    placeholder="e.g., Implemented responsive design and CI/CD pipeline"
-                    rows={2}
-                    className="input flex-1"
-                  />
-                  <button
-                    onClick={() => handleRemoveBullet(proj.id, b.id)}
-                    className="text-red-500 hover:text-red-700"
-                    title="Remove bullet"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => handleAddBullet(proj.id)}
-                className="text-blue-600 text-sm hover:underline"
-              >
-                + Add Bullet
-              </button>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-gray-600">
+                Key Features / Achievements
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleAddBullet(proj.id)}
+                  className="text-blue-500 hover:text-blue-700 flex items-center gap-1 text-sm"
+                >
+                  <Plus size={14} /> Add Bullet
+                </button>
+                <button
+                  onClick={() => handleOpenAIModal(proj.id)}
+                  className="text-purple-500 hover:text-purple-700 flex items-center gap-1 text-sm"
+                >
+                  <Sparkles size={14} /> Generate with AI
+                </button>
+              </div>
             </div>
+
+            {proj.bullets.map((b) => (
+              <div key={b.id} className="flex gap-2 items-start">
+                <textarea
+                  value={b.text}
+                  onChange={(e) =>
+                    handleBulletChange(proj.id, b.id, e.target.value)
+                  }
+                  placeholder="Describe your achievement..."
+                  className="input flex-1 mt-1"
+                  rows={2}
+                />
+                <button
+                  onClick={() => handleRemoveBullet(proj.id, b.id)}
+                  className="text-red-400 hover:text-red-600 mt-1"
+                  title="Remove Bullet"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       ))}
@@ -181,6 +237,17 @@ export default function StepProjects() {
         <Plus size={20} />
         Add Project
       </button>
+
+      {/* AI Modal */}
+      {aiModalState.isOpen && (
+        <AIModal
+          isOpen={aiModalState.isOpen}
+          onClose={() => setAiModalState({ isOpen: false, projectId: null })}
+          onApply={handleAIGenerate}
+          type="project-bullets"
+          context={{ projectTitle: getCurrentProject()?.title }}
+        />
+      )}
     </div>
   );
 }
