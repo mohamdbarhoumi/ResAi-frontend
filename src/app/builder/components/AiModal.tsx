@@ -1,7 +1,9 @@
+// app/resume/builder/components/AIModal.tsx
 "use client";
 
 import { useState } from "react";
 import { X, Sparkles, RefreshCw, Loader2 } from "lucide-react";
+import { useResumeStore } from "../store/resumeStore";
 
 type AIModalProps = {
   isOpen: boolean;
@@ -26,51 +28,81 @@ export default function AIModal({
   const [generatedText, setGeneratedText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  // Get language from store
+  const language = useResumeStore((s) => s.language);
 
   if (!isOpen) return null;
 
   const getPlaceholder = () => {
-    switch (type) {
-      case "summary":
-        return "Example: I'm a final year computer science student with experience in Spring Boot and Next.js. I've built multiple full-stack projects and I'm seeking a backend development internship...";
-      case "experience-bullets":
-        return `Example: I worked on the backend team building REST APIs with Spring Boot. I improved database query performance by optimizing SQL queries and helped mentor 2 junior developers...`;
-      case "project-bullets":
-        return `Example: This project is an e-commerce platform built with Next.js and PostgreSQL. It has user authentication with JWT, payment integration with Stripe, and an admin dashboard for managing products...`;
-      default:
-        return "";
+    if (language === "fr") {
+      switch (type) {
+        case "summary":
+          return "Exemple: Je suis étudiant en dernière année d'informatique avec une expérience en Spring Boot et Next.js. J'ai construit plusieurs projets full-stack et je cherche un stage en développement backend...";
+        case "experience-bullets":
+          return "Exemple: J'ai travaillé dans l'équipe backend pour construire des APIs REST avec Spring Boot. J'ai amélioré les performances des requêtes SQL et aidé à former 2 développeurs juniors...";
+        case "project-bullets":
+          return "Exemple: Ce projet est une plateforme e-commerce construite avec Next.js et PostgreSQL. Il a une authentification utilisateur avec JWT, une intégration de paiement avec Stripe, et un tableau de bord admin...";
+      }
+    } else {
+      switch (type) {
+        case "summary":
+          return "Example: I'm a final year computer science student with experience in Spring Boot and Next.js. I've built multiple full-stack projects and I'm seeking a backend development internship...";
+        case "experience-bullets":
+          return "Example: I worked on the backend team building REST APIs with Spring Boot. I improved database query performance by optimizing SQL queries and helped mentor 2 junior developers...";
+        case "project-bullets":
+          return "Example: This project is an e-commerce platform built with Next.js and PostgreSQL. It has user authentication with JWT, payment integration with Stripe, and an admin dashboard for managing products...";
+      }
     }
   };
 
   const getTitle = () => {
-    switch (type) {
-      case "summary":
-        return "Generate Professional Summary";
-      case "experience-bullets":
-        return `Generate Bullets${context?.role ? ` for ${context.role}` : ""}`;
-      case "project-bullets":
-        return `Generate Bullets${context?.projectTitle ? ` for ${context.projectTitle}` : ""}`;
-      default:
-        return "Generate with AI";
+    if (language === "fr") {
+      switch (type) {
+        case "summary":
+          return "Générer un Résumé Professionnel";
+        case "experience-bullets":
+          return `Générer des Points${context?.role ? ` pour ${context.role}` : ""}`;
+        case "project-bullets":
+          return `Générer des Points${context?.projectTitle ? ` pour ${context.projectTitle}` : ""}`;
+      }
+    } else {
+      switch (type) {
+        case "summary":
+          return "Generate Professional Summary";
+        case "experience-bullets":
+          return `Generate Bullets${context?.role ? ` for ${context.role}` : ""}`;
+        case "project-bullets":
+          return `Generate Bullets${context?.projectTitle ? ` for ${context.projectTitle}` : ""}`;
+      }
     }
   };
 
   const getPromptLabel = () => {
-    switch (type) {
-      case "summary":
-        return "Tell us about yourself and what role you're seeking:";
-      case "experience-bullets":
-        return "Describe what you did in this role (responsibilities, achievements, impact):";
-      case "project-bullets":
-        return "Describe your project (what you built, technologies used, key features):";
-      default:
-        return "Your description:";
+    if (language === "fr") {
+      switch (type) {
+        case "summary":
+          return "Parlez-nous de vous et du poste que vous recherchez:";
+        case "experience-bullets":
+          return "Décrivez ce que vous avez fait dans ce rôle (responsabilités, réalisations, impact):";
+        case "project-bullets":
+          return "Décrivez votre projet (ce que vous avez construit, technologies utilisées, fonctionnalités clés):";
+      }
+    } else {
+      switch (type) {
+        case "summary":
+          return "Tell us about yourself and what role you're seeking:";
+        case "experience-bullets":
+          return "Describe what you did in this role (responsibilities, achievements, impact):";
+        case "project-bullets":
+          return "Describe your project (what you built, technologies used, key features):";
+      }
     }
   };
 
   const handleGenerate = async () => {
     if (!userInput.trim()) {
-      setError("Please enter a description first");
+      setError(language === "fr" ? "Veuillez entrer une description d'abord" : "Please enter a description first");
       return;
     }
 
@@ -103,6 +135,7 @@ export default function AIModal({
         body: JSON.stringify({
           userInput,
           context,
+          language, // Send language to backend
         }),
       });
 
@@ -115,7 +148,7 @@ export default function AIModal({
       setGeneratedText(data.generatedText);
     } catch (err: any) {
       console.error("AI generation error:", err);
-      setError(err.message || "Failed to generate content. Please try again.");
+      setError(err.message || (language === "fr" ? "Échec de génération. Veuillez réessayer." : "Failed to generate content. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -194,12 +227,12 @@ export default function AIModal({
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Generating...
+                    {language === "fr" ? "Génération..." : "Generating..."}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5" />
-                    Generate with AI
+                    {language === "fr" ? "Générer avec l'IA" : "Generate with AI"}
                   </>
                 )}
               </button>
@@ -209,7 +242,7 @@ export default function AIModal({
               {/* Generated Result */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ✨ Generated Content:
+                  ✨ {language === "fr" ? "Contenu Généré:" : "Generated Content:"}
                 </label>
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans">
@@ -225,13 +258,13 @@ export default function AIModal({
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
                 >
                   <RefreshCw className="w-5 h-5" />
-                  Try Again
+                  {language === "fr" ? "Réessayer" : "Try Again"}
                 </button>
                 <button
                   onClick={handleApply}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
                 >
-                  Use This
+                  {language === "fr" ? "Utiliser Ceci" : "Use This"}
                 </button>
               </div>
             </>
@@ -241,7 +274,9 @@ export default function AIModal({
         {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
           <p className="text-xs text-gray-500 text-center">
-            💡 Tip: Be specific about your achievements and use numbers when possible for better results
+            💡 {language === "fr" 
+              ? "Astuce: Soyez spécifique sur vos réalisations et utilisez des chiffres quand possible pour de meilleurs résultats"
+              : "Tip: Be specific about your achievements and use numbers when possible for better results"}
           </p>
         </div>
       </div>

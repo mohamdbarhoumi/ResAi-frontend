@@ -41,7 +41,7 @@ export type Skill = {
 export type Certificate = {
   id: string;      
   name: string;   
-  issuer?: string; 
+  issuer?: string;
   date?: string;  
 };
 
@@ -62,6 +62,7 @@ export type ResumeState = {
   website?: string;
   github?: string;
   linkedin?: string;
+  language: string; 
   experiences: Experience[];
   educations: Education[];
   projects: Project[];
@@ -70,6 +71,7 @@ export type ResumeState = {
   languages: Language[];
 
   setPersonal: (payload: Partial<ResumeState>) => void;
+  setLanguage: (lang: string) => void;
 
   addExperience: (exp: Partial<Experience>) => void;
   updateExperience: (id: string, patch: Partial<Experience>) => void;
@@ -110,6 +112,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
   website: "",
   github: "",
   linkedin: "",
+  language: "en",
 
   experiences: [],
   educations: [],
@@ -119,6 +122,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
   languages: [],
 
   setPersonal: (payload) => set((s) => ({ ...s, ...payload })),
+  setLanguage: (lang) => set({ language: lang }), // NEW
 
   // Experience
   addExperience: (exp) =>
@@ -263,6 +267,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
       website: "",
       github: "",
       linkedin: "",
+      language: "en",
       experiences: [],
       educations: [],
       projects: [],

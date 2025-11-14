@@ -13,26 +13,26 @@ import {
 
 const styles = StyleSheet.create({
   page: { 
-    padding: 30,  // reduced from 40
-    fontSize: 11,  // reduced from 12
+    padding: 30,
+    fontSize: 11,
     fontFamily: "Helvetica", 
     color: "#000" 
   },
 
   header: { 
-    marginBottom: 10,  // reduced from 16
+    marginBottom: 10,
     textAlign: "center" 
   },
 
   name: { 
-    fontSize: 26,  // reduced from 29
-    marginBottom: 2,  // reduced from 4
+    fontSize: 26,
+    marginBottom: 2,
     color: "#000" 
   },
 
   jobTitle: { 
-    fontSize: 13,  // reduced from 15
-    marginBottom: 4,  // reduced from 6
+    fontSize: 13,
+    marginBottom: 4,
     color: "#000" 
   },
 
@@ -40,18 +40,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     flexWrap: "wrap",
-    fontSize: 10,  // reduced from 11
-    marginTop: 2,  // reduced from 4
+    fontSize: 10,
+    marginTop: 2,
   },
 
   contactItem: { 
-    marginHorizontal: 8,  // reduced from 10
+    marginHorizontal: 8,
     color: "#000" 
   },
 
   contactItemWithIcon: { 
     flexDirection: "row", 
-    marginHorizontal: 8  // reduced from 10
+    marginHorizontal: 8
   },
 
   link: { 
@@ -60,94 +60,94 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 11,  // reduced from 12
-    marginTop: 10,  // reduced from 15
-    marginBottom: 6,  // reduced from 8
-    paddingBottom: 3,  // reduced from 4
-    borderBottom: "1.5 solid #000",  // slightly thinner
+    fontSize: 11,
+    marginTop: 10,
+    marginBottom: 6,
+    paddingBottom: 3,
+    borderBottom: "1.5 solid #000",
     textTransform: "uppercase",
-    letterSpacing: 0.5,  // reduced from 1
+    letterSpacing: 0.5,
   },
 
   summaryText: { 
     fontSize: 10, 
-    lineHeight: 1.4,  // reduced from 1.5
+    lineHeight: 1.4,
     textAlign: "justify", 
     color: "#000",
-    marginBottom: 8  // reduced from 12
+    marginBottom: 8
   },
 
   educationItem: { 
-    marginBottom: 8  // reduced from 10
+    marginBottom: 8
   },
 
   degreeTitle: { 
-    fontSize: 10,  // reduced from 11
-    marginBottom: 1,  // reduced from 2
+    fontSize: 10,
+    marginBottom: 1,
     color: "#000" 
   },
 
   universityName: { 
-    fontSize: 9,  // reduced from 10
+    fontSize: 9,
     color: "#555", 
-    marginBottom: 0.5  // reduced from 1
+    marginBottom: 0.5
   },
 
   dateLocation: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
-    fontSize: 8,  // reduced from 9
+    fontSize: 8,
     fontStyle: "italic", 
     color: "#666",
     marginBottom: 6
   },
 
   item: { 
-    marginBottom: 10  // reduced from 14
+    marginBottom: 10
   },
 
   titleText: { 
-    fontSize: 10,  // reduced from 11
-    marginBottom: 1,  // reduced from 2
+    fontSize: 10,
+    marginBottom: 1,
     color: "#000" 
   },
 
   secondaryText: { 
-    fontSize: 9,  // reduced from 10
+    fontSize: 9,
     color: "#555", 
-    marginBottom: 2  // reduced from 3
+    marginBottom: 2
   },
 
   dateLocationRow: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
-    fontSize: 8,  // reduced from 9
+    fontSize: 8,
     fontStyle: "italic", 
     color: "#666", 
-    marginBottom: 4  // reduced from 6
+    marginBottom: 4
   },
 
   bulletPoint: { 
     flexDirection: "row",
-    marginBottom: 3,  // reduced from 4
-    paddingLeft: 8  // reduced from 10
+    marginBottom: 3,
+    paddingLeft: 8
   },
 
   bullet: { 
-    width: 12,  // reduced from 15
-    fontSize: 9  // reduced from 10
+    width: 12,
+    fontSize: 9
   },
   
   bulletText: { 
     flex: 1, 
-    fontSize: 9,  // reduced from 10
-    lineHeight: 1.3  // reduced from 1.4
+    fontSize: 9,
+    lineHeight: 1.3
   },
 
   skillsContainer: { 
     flexDirection: "row", 
     flexWrap: "wrap", 
-    marginTop: 4  // reduced from 6
+    marginTop: 4
   },
 
   skillBadge: { 
@@ -166,6 +166,28 @@ const styles = StyleSheet.create({
   },
 });
 
+// Translation object for section titles
+const sectionTitles = {
+  en: {
+    summary: "SUMMARY",
+    experience: "EXPERIENCE",
+    projects: "PROJECTS",
+    education: "EDUCATION",
+    skills: "SKILLS",
+    certificates: "CERTIFICATES",
+    languages: "LANGUAGES",
+  },
+  fr: {
+    summary: "RÉSUMÉ",
+    experience: "EXPÉRIENCE PROFESSIONNELLE",
+    projects: "PROJETS",
+    education: "FORMATION",
+    skills: "COMPÉTENCES",
+    certificates: "CERTIFICATIONS",
+    languages: "LANGUES",
+  },
+};
+
 const renderBullets = (bullets: any[] = []) =>
   bullets
     .map((b) => (b ? { text: b.text?.trim() ?? "" } : null))
@@ -178,6 +200,10 @@ const renderBullets = (bullets: any[] = []) =>
     ));
 
 export function MyResumePDF({ data }: { data: any }) {
+  // Get the language from data, default to English
+  const lang = (data.language || "en") as "en" | "fr";
+  const titles = sectionTitles[lang];
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -240,7 +266,7 @@ export function MyResumePDF({ data }: { data: any }) {
         {/* Summary */}
         {data.summary && (
           <View>
-            <Text style={styles.sectionTitle}>SUMMARY</Text>
+            <Text style={styles.sectionTitle}>{titles.summary}</Text>
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         )}
@@ -248,7 +274,7 @@ export function MyResumePDF({ data }: { data: any }) {
         {/* Experience */}
         {data.experiences?.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>EXPERIENCE</Text>
+            <Text style={styles.sectionTitle}>{titles.experience}</Text>
             {data.experiences.map((exp: any, idx: number) => (
               <View key={exp.id ?? idx} style={styles.item}>
                 <View style={styles.dateLocationRow}>
@@ -265,7 +291,7 @@ export function MyResumePDF({ data }: { data: any }) {
         {/* Projects */}
         {data.projects?.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>PROJECTS</Text>
+            <Text style={styles.sectionTitle}>{titles.projects}</Text>
 
             {data.projects.map((proj: any, idx: number) => (
               <View key={proj.id ?? idx} style={styles.item}>
@@ -309,7 +335,7 @@ export function MyResumePDF({ data }: { data: any }) {
         {/* Education */}
         {data.educations?.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>EDUCATION</Text>
+            <Text style={styles.sectionTitle}>{titles.education}</Text>
             {data.educations.map((edu: any, idx: number) => (
               <View key={edu.id ?? idx} style={styles.item}> 
                 <View style={styles.dateLocationRow}> 
@@ -328,18 +354,18 @@ export function MyResumePDF({ data }: { data: any }) {
         {/* Skills Section */}
         {data.skills && data.skills.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>Skills</Text>
+            <Text style={styles.sectionTitle}>{titles.skills}</Text>
             <Text>
-              {data.skills.map(s => `• ${s.name}`).join("   ")}
+              {data.skills.map((s: any) => `• ${s.name}`).join("   ")}
             </Text>
           </View>
         )}
 
         {/* Certificates */}
-        {data.certificates.length > 0 && (
+        {data.certificates?.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>Certificates</Text>
-            {data.certificates.map((c) => (
+            <Text style={styles.sectionTitle}>{titles.certificates}</Text>
+            {data.certificates.map((c: any) => (
               <Text key={c.id} style={styles.item}>
                 <Text style={{ fontWeight: "bold" }}>{c.name}</Text>
                 {c.issuer && `, ${c.issuer}`}
@@ -350,12 +376,12 @@ export function MyResumePDF({ data }: { data: any }) {
         )}
 
         {/* Languages */}
-        {data.languages.length > 0 && (
+        {data.languages?.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>Languages</Text>
+            <Text style={styles.sectionTitle}>{titles.languages}</Text>
             <Text>
               {data.languages
-                .map((l) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
+                .map((l: any) => (l.proficiency ? `${l.name} (${l.proficiency})` : l.name))
                 .join(", ")}
             </Text>
           </View>

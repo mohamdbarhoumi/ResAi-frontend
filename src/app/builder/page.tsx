@@ -16,6 +16,7 @@ import StepCertificates from "./components/StepCerts";
 import StepLanguages from "./components/StepLanguages";
 import { useRouter } from "next/navigation";
 import { useAuthGuard } from "../hooks/useAuthGuard";
+import LanguageSelector from "./components/LanguageSelector";
 
 const PDFPreviewWrapper = dynamic(
   () => import("./components/PdfPreviewWrapper"),
@@ -53,13 +54,11 @@ export default function ResumeBuilderPage() {
 
   const router = useRouter();
 
-  // Load existing resume if editing
   useEffect(() => {
     if (resumeId) {
       loadResume(resumeId);
       setIsEditMode(true);
     } else {
-      // Clear store for new resume
       useResumeStore.getState().clearAll();
     }
   }, [resumeId]);
@@ -80,14 +79,13 @@ export default function ResumeBuilderPage() {
 
       const { resume } = await response.json();
       
-      // Load the resume data into the store
       if (resume.data) {
         useResumeStore.setState({
           ...resume.data,
           id: resume.id,
+          language: resume.language || resume.data.language || "en",
         });
         
-        // Auto-update preview after loading
         setTimeout(() => {
           handleUpdatePreview();
         }, 100);
@@ -147,12 +145,12 @@ export default function ResumeBuilderPage() {
         title: resumeData.title || resumeData.fullName || "My Resume",
         data: resumeData,
         aiMetadata: null,
+        language: resumeData.language,
       };
 
       let response;
       
       if (isEditMode && resumeId) {
-        // Update existing resume
         response = await fetch(`http://localhost:8081/api/resumes/update/${resumeId}`, {
           method: "PUT",
           headers: {
@@ -162,7 +160,6 @@ export default function ResumeBuilderPage() {
           body: JSON.stringify(payload),
         });
       } else {
-        // Create new resume
         response = await fetch("http://localhost:8081/api/resumes/create", {
           method: "POST",
           headers: {
@@ -213,13 +210,20 @@ export default function ResumeBuilderPage() {
         <div className="grid grid-cols-12 gap-6">
           {/* Left: Form */}
           <section className="col-span-7 bg-white rounded-xl shadow p-6">
-            {isEditMode && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  ✏️ You are editing an existing resume
-                </p>
+            {/* Language Selector at Top */}
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                {isEditMode && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg inline-block">
+                    <p className="text-sm text-blue-800">
+                      ✏️ You are editing an existing resume
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+              <LanguageSelector />
+            </div>
+
             <TabNav tabs={tabs} active={activeTab} onChange={setActiveTab} />
             <div className="mt-4">{renderTab()}</div>
           </section>
