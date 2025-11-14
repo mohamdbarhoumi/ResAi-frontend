@@ -1,7 +1,6 @@
-// app/resume/[id]/options/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import { PDFViewer } from "@react-pdf/renderer";
@@ -17,6 +16,20 @@ type Resume = {
   createdAt: string;
   updatedAt: string;
 };
+
+// Separate memoized component for PDF preview
+const MemoizedPDFPreview = memo(({ data }: { data: any }) => {
+  return (
+    <div className="border rounded-lg bg-gray-50 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+      <PDFPreviewWrapper data={data} />
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison: only re-render if data actually changed
+  return JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data);
+});
+
+MemoizedPDFPreview.displayName = 'MemoizedPDFPreview';
 
 export default function ResumeHubPage() {
   const params = useParams();
@@ -262,13 +275,11 @@ export default function ResumeHubPage() {
                   Resume Preview
                 </h2>
                 <div className="flex gap-2">
-  <DownloadButton snapshot={resume.data} />
-</div>
+                  <DownloadButton snapshot={resume.data} />
+                </div>
               </div>
               
-              <div className="border rounded-lg bg-gray-50 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
-                <PDFPreviewWrapper data={resume.data} />
-              </div>
+              <MemoizedPDFPreview data={resume.data} />
             </div>
           </section>
 
@@ -287,7 +298,7 @@ export default function ResumeHubPage() {
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 placeholder="Paste the job description here..."
-                className="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E88E5] focus:border-transparent resize-none text-sm"
+                className="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E88E5] focus:border-transparent resize-none text-sm text-gray-900"
               />
               
               <button

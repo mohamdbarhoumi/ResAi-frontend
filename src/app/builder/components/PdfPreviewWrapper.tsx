@@ -4,6 +4,7 @@
 import { PDFViewer } from "@react-pdf/renderer";
 import MyResumePDF from "../preview/Template1";
 import { useEffect, useState, Component, ErrorInfo, ReactNode } from "react";
+import React from "react";
 
 interface PDFPreviewWrapperProps {
   data: Record<string, any>;
@@ -45,11 +46,10 @@ class PDFErrorBoundary extends Component<
   }
 }
 
-export default function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
+function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -72,3 +72,7 @@ export default function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
     </PDFErrorBoundary>
   );
 }
+
+export default React.memo(PDFPreviewWrapper, (prevProps, nextProps) => {
+  return JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data);
+});
