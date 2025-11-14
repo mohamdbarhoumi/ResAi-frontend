@@ -3,9 +3,7 @@
 import { useState, useEffect, memo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
-import { PDFViewer } from "@react-pdf/renderer";
 import PDFPreviewWrapper from "@/src/app/builder/components/PdfPreviewWrapper";
-import DownloadDOCXButton from "@/src/app/builder/components/DownloadDOCXButton";
 import DownloadButton from "@/src/app/builder/components/DownloadButton";
 
 type Resume = {
@@ -238,158 +236,176 @@ export default function ResumeHubPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <Navbar title={resume.title} />
-      
-      <div className="pt-20 px-6 max-w-7xl mx-auto pb-8">
-        {/* Header Section */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{resume.title}</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Last updated: {new Date(resume.updatedAt).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => router.push(`/builder?id=${resumeId}`)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-            >
-              ✏️ Edit Resume
-            </button>
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-            >
-              ← Back to Dashboard
-            </button>
-          </div>
+  <main className="min-h-screen bg-gray-50">
+    <Navbar title={resume.title} />
+
+    <div className="pt-20 px-4 sm:px-6 max-w-7xl mx-auto pb-10">
+      {/* Header Section */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{resume.title}</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Last updated: {new Date(resume.updatedAt).toLocaleDateString()}
+          </p>
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
-          {/* Left Column - Preview (Full Height) */}
-          <section className="col-span-7">
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Resume Preview
-                </h2>
-                <div className="flex gap-2">
-                  <DownloadButton snapshot={resume.data} />
-                </div>
-              </div>
-              
-              <MemoizedPDFPreview data={resume.data} />
-            </div>
-          </section>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => router.push(`/builder?id=${resumeId}`)}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition w-full sm:w-auto"
+          >
+            ✏️ Edit Resume
+          </button>
 
-          {/* Right Column - Job Tools */}
-          <aside className="col-span-5">
-            {/* Job Tailoring Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">📝</span>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Tailor for Specific Job
-                </h2>
-              </div>
-              
-              <textarea
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Paste the job description here..."
-                className="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E88E5] focus:border-transparent resize-none text-sm text-gray-900"
-              />
-              
-              <button
-                onClick={handleTailorResume}
-                disabled={tailoring || !jobDescription.trim()}
-                className="w-full mt-4 px-4 py-3 bg-[#1E88E5] text-white rounded-lg hover:bg-[#1565c0] transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                {tailoring ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                    Tailoring Resume...
-                  </span>
-                ) : (
-                  "✨ Tailor Resume"
-                )}
-              </button>
-              
-              <p className="text-xs text-gray-500 mt-3 italic">
-                💡 Tip: Our AI will optimize your resume to match the job requirements
-              </p>
-            </div>
-
-            {/* Cover Letter Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">✉️</span>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Need a Cover Letter?
-                </h2>
-              </div>
-              
-              <p className="text-sm text-gray-600 mb-4">
-                Generate a professional cover letter using your resume and the job description above.
-              </p>
-              
-              <button
-                onClick={handleGenerateCoverLetter}
-                disabled={generating || !jobDescription.trim()}
-                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                {generating ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                    Generating...
-                  </span>
-                ) : (
-                  "📧 Generate Cover Letter"
-                )}
-              </button>
-
-              {coverLetter && (
-                <div className="mt-4 border-t pt-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">Your Cover Letter:</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 max-h-80 overflow-auto border border-gray-200">
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-                      {coverLetter}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(coverLetter);
-                        alert("Cover letter copied to clipboard!");
-                      }}
-                      className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-medium"
-                    >
-                      📋 Copy
-                    </button>
-                    <button
-                      onClick={() => {
-                        const blob = new Blob([coverLetter], { type: "text/plain" });
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = `${resume.data.fullName || "Cover"}_Letter.txt`;
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-                      }}
-                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
-                    >
-                      💾 Download
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </aside>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition w-full sm:w-auto"
+          >
+            ← Back to Dashboard
+          </button>
         </div>
       </div>
-    </main>
-  );
+
+      {/* Responsive Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left Column - Preview */}
+        <section className="lg:col-span-7 order-2 lg:order-1">
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 
+                          lg:sticky lg:top-24">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Resume Preview
+              </h2>
+              <div className="flex gap-2">
+                <DownloadButton snapshot={resume.data} />
+              </div>
+            </div>
+
+            {/* Responsive PDF Preview Container */}
+            <div className="h-[70vh] sm:h-[75vh] lg:h-[calc(100vh-200px)] border rounded-md bg-gray-50 overflow-hidden">
+              <MemoizedPDFPreview data={resume.data} />
+            </div>
+          </div>
+        </section>
+
+        {/* Right Column - Job Tools */}
+        <aside className="lg:col-span-5 order-1 lg:order-2">
+          
+          {/* Job Tailoring Section */}
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">📝</span>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Tailor for Specific Job
+              </h2>
+            </div>
+
+            <textarea
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the job description here..."
+              className="w-full h-40 sm:h-48 p-3 border border-gray-300 rounded-lg 
+                         text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+
+            <button
+              onClick={handleTailorResume}
+              disabled={tailoring || !jobDescription.trim()}
+              className="w-full mt-4 px-4 py-3 bg-blue-600 text-white 
+                         rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-medium"
+            >
+              {tailoring ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Tailoring Resume...
+                </span>
+              ) : (
+                "✨ Tailor Resume"
+              )}
+            </button>
+
+            <p className="text-xs text-gray-500 mt-2 italic">
+              💡 Our AI optimizes your resume for the exact job description.
+            </p>
+          </div>
+
+          {/* Cover Letter Section */}
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">✉️</span>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Need a Cover Letter?
+              </h2>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              Generate a tailored cover letter using your resume + job description.
+            </p>
+
+            <button
+              onClick={handleGenerateCoverLetter}
+              disabled={generating || !jobDescription.trim()}
+              className="w-full px-4 py-3 bg-green-600 text-white 
+                         rounded-lg hover:bg-green-700 transition disabled:opacity-50 font-medium"
+            >
+              {generating ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Generating...
+                </span>
+              ) : (
+                "📧 Generate Cover Letter"
+              )}
+            </button>
+
+            {/* Cover letter output */}
+            {coverLetter && (
+              <div className="mt-4 border-t pt-4">
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Your Cover Letter:
+                </h3>
+
+                <div className="bg-gray-50 rounded-lg p-4 max-h-80 overflow-auto border">
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                    {coverLetter}
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 mt-3">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(coverLetter);
+                      alert("Cover letter copied!");
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                  >
+                    📋 Copy
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const blob = new Blob([coverLetter], { type: "text/plain" });
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `${resume.data.fullName || "Cover"}_Letter.txt`;
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                    }}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                  >
+                    💾 Download
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+);
 }

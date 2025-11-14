@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, FormEvent } from "react";
-import { useRouter } from "next/navigation"; // ✅ Added for redirecting after login
+import { useRouter } from "next/navigation";
 
 interface UserPayload {
   email: string;
@@ -13,13 +13,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false); // ✅ Added loading state
-  const router = useRouter(); // ✅ Initialize router for navigation
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setMessage("");
-    setLoading(true); // ✅ Show loading state
+    setLoading(true);
 
     const payload: UserPayload = { email, password };
 
@@ -38,16 +38,12 @@ export default function LoginPage() {
         return;
       }
 
-      // ✅ Save token & user info in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("email", data.email);
       localStorage.setItem("role", data.role);
 
-      console.log("✅ Token saved:", data.token);
       setMessage("✅ Login successful!");
       setLoading(false);
-
-      // ✅ Redirect to dashboard or home page
       router.push("/dashboard");
     } catch (error) {
       console.error("❌ Login error:", error);
@@ -57,13 +53,13 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-6">
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4 sm:px-6 py-10">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md text-center">
         {/* Title */}
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Welcome Back 👋
         </h1>
-        <p className="text-gray-500 mb-8">
+        <p className="text-gray-500 mb-8 text-sm sm:text-base">
           Login or create your account to continue.
         </p>
 
@@ -75,7 +71,12 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="px-4 py-3 border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="
+              px-4 py-3 border border-gray-300 text-gray-800  
+              placeholder-gray-400 rounded-lg 
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+              text-sm sm:text-base
+            "
           />
 
           <input
@@ -84,23 +85,28 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="px-4 py-3 border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="
+              px-4 py-3 border border-gray-300 text-gray-800  
+              placeholder-gray-400 rounded-lg 
+              focus:outline-none focus:ring-2 focus:ring-blue-500
+              text-sm sm:text-base
+            "
           />
 
           <button
             type="submit"
             disabled={loading}
-            className={`py-3 rounded-lg font-semibold text-white transition ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className={`
+              py-3 rounded-lg font-semibold text-white transition 
+              text-sm sm:text-base
+              ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}
+            `}
           >
             {loading ? "Logging in..." : "Continue"}
           </button>
 
-          {/* Link to Signup */}
-          <p className="mt-4 text-gray-500 text-sm">
+          {/* Signup Link */}
+          <p className="mt-1 text-gray-500 text-sm sm:text-base">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-blue-600 hover:underline">
               Sign up
@@ -111,7 +117,7 @@ export default function LoginPage() {
         {/* Message */}
         {message && (
           <p
-            className={`mt-6 text-sm font-medium ${
+            className={`mt-5 text-sm font-medium ${
               message.includes("❌") ? "text-red-600" : "text-green-600"
             }`}
           >
@@ -121,21 +127,26 @@ export default function LoginPage() {
 
         {/* Divider */}
         <div className="my-6 flex items-center justify-center">
-          <span className="h-px w-16 bg-gray-300"></span>
+          <span className="h-px w-20 bg-gray-300"></span>
           <span className="mx-3 text-gray-500 text-sm">or</span>
-          <span className="h-px w-16 bg-gray-300"></span>
+          <span className="h-px w-20 bg-gray-300"></span>
         </div>
 
-        {/* Google Login Button */}
+        {/* Google Login */}
         <button
           type="button"
           onClick={() => alert("Google login coming soon")}
-          className="flex items-center justify-center w-full py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          className="
+            flex items-center justify-center gap-2
+            w-full py-3 border border-gray-300 
+            rounded-lg hover:bg-gray-50 transition 
+            text-sm sm:text-base
+          "
         >
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
             alt="Google logo"
-            className="w-5 h-5 mr-2"
+            className="w-5 h-5"
           />
           <span className="text-gray-700 font-medium">
             Continue with Google
@@ -144,7 +155,7 @@ export default function LoginPage() {
       </div>
 
       {/* Footer */}
-      <footer className="absolute bottom-6 text-sm text-gray-500">
+      <footer className="mt-10 text-sm text-gray-500">
         © {new Date().getFullYear()} ResumeAi. All rights reserved.
       </footer>
     </main>
