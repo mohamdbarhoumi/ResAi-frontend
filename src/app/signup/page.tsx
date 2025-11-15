@@ -8,6 +8,9 @@ interface UserPayload {
   password: string;
 }
 
+// Check if API URL is defined
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,6 +24,13 @@ export default function SignupPage() {
     e.preventDefault();
     setMessage("");
 
+    // Debug: Check if API_URL is defined
+    if (!API_URL) {
+      setMessage("⚠️ API URL not configured. Please contact support.");
+      console.error("NEXT_PUBLIC_API_URL is not defined");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setMessage("❌ Passwords do not match");
       return;
@@ -31,9 +41,14 @@ export default function SignupPage() {
     const payload: UserPayload = { email, password };
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/create`, {
+      const url = `${API_URL}/api/users/create`;
+      console.log("Attempting to call:", url); // Debug log
+
+      const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
@@ -48,10 +63,14 @@ export default function SignupPage() {
       setMessage("✅ Account created successfully!");
       setLoading(false);
 
-      router.push("/login");
+      // Redirect after 1.5 seconds
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
+
     } catch (err) {
-      console.error(err);
-      setMessage("⚠️ An error occurred. Please try again.");
+      console.error("Signup error:", err);
+      setMessage("⚠️ Cannot connect to server. Please try again.");
       setLoading(false);
     }
   };
@@ -66,6 +85,13 @@ export default function SignupPage() {
         <p className="text-gray-500 text-center mb-8">
           Sign up to start using ResumeAi.
         </p>
+
+        {/* Debug info - remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-2 bg-yellow-100 text-xs rounded">
+            API URL: {API_URL || "NOT SET"}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
           <input
@@ -83,6 +109,7 @@ export default function SignupPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
             className="px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none"
           />
 
