@@ -17,6 +17,29 @@ function LoginPage() {
 
   if (isLogin) {
     // call login API
+     try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Login failed");
+      }
+
+      const data = await response.json();
+      console.log("Login success:", data);
+
+      // Save JWT token
+      localStorage.setItem("token", data.token);
+
+      window.location.href = "/dashboard";
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   } else {
     // call create account API
     try {
