@@ -23,7 +23,7 @@ export default function LoginPage() {
     const payload: UserPayload = { email, password };
 
     try {
-      const res = await fetch("http://localhost:8081/api/users/login", {
+      const res = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

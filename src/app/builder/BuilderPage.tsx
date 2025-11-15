@@ -71,7 +71,7 @@ export default function ResumeBuilderPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(`http://localhost:8081/api/resumes/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -142,8 +142,8 @@ export default function ResumeBuilderPage() {
       };
 
       const url = isEditMode
-        ? `http://localhost:8081/api/resumes/update/${resumeId}`
-        : "http://localhost:8081/api/resumes/create";
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/update/${resumeId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/create`;
 
       const response = await fetch(url, {
         method: isEditMode ? "PUT" : "POST",

@@ -54,7 +54,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8081/api/resumes/${resumeId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

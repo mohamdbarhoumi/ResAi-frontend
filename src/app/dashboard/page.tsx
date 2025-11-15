@@ -28,7 +28,7 @@ export default function Dashboard() {
   const fetchResumes = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8081/api/resumes", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resumes", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -62,7 +62,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8081/api/resumes/delete/${resumeId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/delete/${resumeId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },

@@ -126,7 +126,7 @@ export default function AIModal({
           break;
       }
 
-      const response = await fetch(`http://localhost:8081/api/ai/${endpoint}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
