@@ -1,8 +1,8 @@
-export const dynamic = "force-dynamic"; // ❗ disables prerendering
+export const dynamic = "force-dynamic"; 
 export const fetchCache = "force-no-store";
 
 import { Suspense } from "react";
-import ResumeBuilderPage from "./BuilderPage"; // new file (client)
+import ResumeBuilderPage from "./BuilderPage"; 
 
 export default function Page() {
   return (
