@@ -31,7 +31,7 @@ export default function SignupPage() {
     const payload: UserPayload = { email, password };
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/signup`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
