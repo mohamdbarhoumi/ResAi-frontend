@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 
 function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true); // true = login, false = create account
+  const [isLogin, setIsLogin] = useState(true); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState(''); // only for create account
+  const [name, setName] = useState(''); 
 
   const handleSubmit = async (e) => {
   e.preventDefault();
   const userData = {
     email,
-    fullName: name,  // map name field to fullName
+    fullName: name,  
     password,
     authProvider: 'LOCAL'
   };
