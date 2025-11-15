@@ -12,7 +12,7 @@ export function useAuthGuard(){
       return
     }
 
-    fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/me", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` }
     }).then(async(res)=>{

@@ -82,7 +82,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8081/api/resumes/${resumeId}/download/pdf`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}/download/pdf`,
         {
           method: "POST",
           headers: {
@@ -115,7 +115,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8081/api/resumes/${resumeId}/download/docx`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}/download/docx`,
         {
           method: "POST",
           headers: {
@@ -153,7 +153,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8081/api/resumes/${resumeId}/tailor`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}/tailor`,
         {
           method: "POST",
           headers: {
@@ -191,7 +191,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8081/api/resumes/${resumeId}/cover-letter`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}/cover-letter`,
         {
           method: "POST",
           headers: {

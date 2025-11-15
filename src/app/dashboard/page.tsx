@@ -28,7 +28,7 @@ export default function Dashboard() {
   const fetchResumes = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resumes", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
