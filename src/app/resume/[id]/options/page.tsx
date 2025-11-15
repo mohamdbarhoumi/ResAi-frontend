@@ -306,7 +306,7 @@ export default function ResumeHubPage() {
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the job description here..."
               className="w-full h-40 sm:h-48 p-3 border border-gray-300 rounded-lg 
-                         text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                         text-sm focus:ring-2 focus:ring-blue-500 resize-none text-gray-900"
             />
 
             <button
