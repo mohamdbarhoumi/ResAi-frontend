@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { API_URL } from "@/src/config/api";
 
 interface UserPayload {
   email: string;
@@ -23,7 +24,7 @@ export default function LoginPage() {
     const payload: UserPayload = { email, password };
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/login`, {
+      const res = await fetch(`${API_URL}/api/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

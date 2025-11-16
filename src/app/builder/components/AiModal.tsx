@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { X, Sparkles, RefreshCw, Loader2 } from "lucide-react";
 import { useResumeStore } from "../store/resumeStore";
+import { API_URL } from "@/src/config/api";
 
 type AIModalProps = {
   isOpen: boolean;
@@ -126,7 +127,7 @@ export default function AIModal({
           break;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/${endpoint}`, {
+      const response = await fetch(`${API_URL}/api/ai/${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

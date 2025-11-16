@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import { API_URL } from "@/src/config/api";
 function LoginPage() {
   const [isLogin, setIsLogin] = useState(true); 
   const [email, setEmail] = useState('');
@@ -14,7 +14,7 @@ function LoginPage() {
     setLoading(true);
 
     // Check if API URL is defined
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  
     if (!API_URL) {
       setError('⚠️ Configuration error. Please contact support.');
       console.error('❌ NEXT_PUBLIC_API_URL is undefined!');

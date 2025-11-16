@@ -1,6 +1,7 @@
 "use client"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { API_URL } from "@/src/config/api"
 
 export function useAuthGuard(){
   const router = useRouter()
@@ -12,7 +13,7 @@ export function useAuthGuard(){
       return
     }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+    fetch(`${API_URL}/api/users/me`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` }
     }).then(async(res)=>{

@@ -17,6 +17,7 @@ import LanguageSelector from "./components/LanguageSelector";
 
 import { useResumeStore } from "./store/resumeStore";
 import { useAuthGuard } from "../hooks/useAuthGuard";
+import { API_URL } from "@/src/config/api";
 
 const PDFPreviewWrapper = dynamic(
   () => import("./components/PdfPreviewWrapper"),
@@ -71,7 +72,7 @@ export default function ResumeBuilderPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${id}`, {
+      const response = await fetch(`${API_URL}/api/resumes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -142,8 +143,8 @@ export default function ResumeBuilderPage() {
       };
 
       const url = isEditMode
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/update/${resumeId}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/create`;
+        ? `${API_URL}/api/resumes/update/${resumeId}`
+        : `${API_URL}/api/resumes/create`;
 
       const response = await fetch(url, {
         method: isEditMode ? "PUT" : "POST",
