@@ -86,7 +86,6 @@ export default function ResumeBuilderPage() {
           language: resume.language || resume.data.language || "en",
         });
 
-        // small delay to let state settle before preview
         setTimeout(() => handleUpdatePreview(), 120);
       }
     } catch (err) {
@@ -120,14 +119,11 @@ export default function ResumeBuilderPage() {
   };
 
   const handleUpdatePreview = () => {
-    // snapshot the zustand state
     const state = useResumeStore.getState();
     const newSnapshot = JSON.parse(JSON.stringify(state));
 
-    // quick unmount/mount trick to force preview wrapper reload
     setSnapshot(null);
 
-    // use rAF to avoid layout thrash on mobile
     requestAnimationFrame(() => {
       setSnapshot(newSnapshot);
       setPreviewKey((k) => k + 1);
@@ -190,104 +186,135 @@ export default function ResumeBuilderPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-8">
+    <main className="min-h-screen bg-gray-50">
       <Navbar title={isEditMode ? "Edit Resume" : "Resume Builder"} />
 
-      <div className="pt-20 px-3 sm:px-6 max-w-6xl mx-auto">
+      <div className="pt-20 px-3 sm:px-6 pb-8 max-w-7xl mx-auto">
+        
+        {/* Edit Mode Badge + Language Selector - Mobile Friendly */}
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {isEditMode && (
+            <div className="inline-flex items-center px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg w-fit">
+              <p className="text-sm text-blue-800">✏️ Editing existing resume</p>
+            </div>
+          )}
+          <div className="w-fit">
+            <LanguageSelector />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* LEFT COLUMN - Form & Mobile Preview */}
-          <section className="lg:col-span-7 bg-white rounded-xl shadow p-4 sm:p-6 w-full max-w-full overflow-x-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              {isEditMode && (
-                <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">✏️ Editing an existing resume</p>
-                </div>
-              )}
-              <LanguageSelector />
+          {/* LEFT COLUMN - Form */}
+          <section className="lg:col-span-7 space-y-4">
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+              
+              {/* Tab Navigation */}
+              <TabNav tabs={tabs} active={activeTab} onChange={setActiveTab} />
+
+              {/* Form Content */}
+              <div className="mt-6">
+                {renderTab()}
+              </div>
             </div>
 
-            <TabNav tabs={tabs} active={activeTab} onChange={setActiveTab} />
-
-            <div className="mt-4 space-y-4 w-full max-w-full overflow-x-hidden">
-              {renderTab()}
-            </div>
-
-            {/* Mobile controls */}
-            <div className="mt-4 lg:hidden space-y-3">
-              {/* mobile Update Preview */}
+            {/* Mobile: Update Preview & Show/Hide Preview Buttons */}
+            <div className="lg:hidden space-y-3">
               <button
                 onClick={handleUpdatePreview}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-medium active:scale-[0.98] transition"
+                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-colors"
               >
-                Update Preview
+                🔄 Update Preview
               </button>
 
-              {/* show/hide preview */}
               <button
                 onClick={() => setShowMobilePreview((s) => !s)}
-                className="w-full py-3 bg-gray-100 rounded-lg text-gray-800 font-medium border hover:bg-gray-200 active:scale-[0.98]"
+                className="w-full py-3 bg-gray-100 text-gray-800 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 active:bg-gray-300 transition-colors"
               >
-                {showMobilePreview ? "Hide Preview" : "Show Preview"}
+                {showMobilePreview ? "👁️ Hide Preview" : "👁️ Show Preview"}
               </button>
+
+              {/* Mobile: Save/Cancel Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 active:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 active:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {saving ? "Saving..." : isEditMode ? "💾 Update" : "💾 Save"}
+                </button>
+              </div>
             </div>
 
-            {/* Mobile Preview */}
+            {/* Mobile Preview Section */}
             {showMobilePreview && (
-              <div className="mt-4 border rounded-xl bg-white p-3 max-h-[70vh] overflow-y-auto">
-                {snapshot ? (
-                  <PDFPreviewWrapper key={previewKey} data={snapshot} />
-                ) : (
-                  <div className="h-40 flex items-center justify-center text-gray-400 text-sm">
-                    Tap &quot;Update Preview&quot; to generate the preview.
-                  </div>
-                )}
+              <div className="lg:hidden bg-white rounded-xl shadow-md p-4">
+                <h3 className="font-semibold text-gray-800 mb-3 text-lg">
+                  📄 Preview
+                </h3>
+                <div className="border-2 border-gray-200 rounded-lg bg-gray-50 overflow-hidden" style={{ height: '70vh' }}>
+                  {snapshot ? (
+                    <PDFPreviewWrapper key={previewKey} data={snapshot} />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-gray-400 text-sm px-4 text-center">
+                      Tap &quot;Update Preview&quot; above to generate your resume preview
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </section>
 
           {/* RIGHT COLUMN - Desktop Preview & Actions */}
-          <aside className="hidden lg:block lg:col-span-5">
-            <div className="bg-white rounded-xl shadow p-4 h-[75vh] flex flex-col">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-800">Template Preview</h3>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleUpdatePreview}
-                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 active:scale-[0.98]"
-                  >
-                    Update Preview
-                  </button>
-                </div>
+          <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24 lg:self-start">
+            <div className="bg-white rounded-xl shadow-md p-4 flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
+              
+              {/* Preview Header */}
+              <div className="flex items-center justify-between mb-3 pb-3 border-b">
+                <h3 className="font-semibold text-gray-800 text-lg">📄 Preview</h3>
+                <button
+                  onClick={handleUpdatePreview}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors"
+                >
+                  🔄 Update
+                </button>
               </div>
 
-              <div className="flex-1 overflow-hidden border rounded bg-gray-50">
+              {/* Preview Area */}
+              <div className="flex-1 overflow-hidden border-2 border-gray-200 rounded-lg bg-gray-50">
                 {snapshot ? (
                   <PDFPreviewWrapper key={previewKey} data={snapshot} />
                 ) : (
-                  <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-                    Click &quot;Update Preview&quot; to generate your resume.
+                  <div className="h-full flex items-center justify-center text-gray-400 text-sm px-4 text-center">
+                    Click &quot;Update&quot; to generate your resume preview
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* ACTION BUTTONS */}
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 active:scale-[0.98]"
-              >
-                Cancel
-              </button>
+              {/* Desktop Action Buttons */}
+              <div className="mt-4 flex gap-3">
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 active:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
 
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 active:scale-[0.98]"
-              >
-                {saving ? "Saving..." : isEditMode ? "Update Resume" : "Save Resume"}
-              </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 active:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {saving ? "Saving..." : isEditMode ? "💾 Update Resume" : "💾 Save Resume"}
+                </button>
+              </div>
             </div>
           </aside>
         </div>
