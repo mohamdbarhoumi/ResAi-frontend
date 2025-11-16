@@ -9,16 +9,18 @@ export default function LanguageSelector() {
   const setLanguage = useResumeStore((s) => s.setLanguage);
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg">
-      <Globe className="w-4 h-4 text-gray-900" />
-      <span className="text-sm text-gray-900">Language:</span>
+    <div className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:border-gray-400 transition-colors">
+      <Globe className="w-4 h-4 text-gray-600 flex-shrink-0" />
+      <span className="text-sm text-gray-700 font-medium hidden sm:inline">
+        Language:
+      </span>
       <select
         value={language}
         onChange={(e) => setLanguage(e.target.value)}
-        className=" text-gray-900 text-sm border-none focus:outline-none focus:ring-0 bg-transparent cursor-pointer font-medium"
+        className="text-gray-900 text-sm border-none focus:outline-none focus:ring-0 bg-transparent cursor-pointer font-medium pr-6"
       >
-        <option value="en" className="text-gray-900">🇬🇧 English</option>
-        <option value="fr" className="text-gray-900">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="fr">🇫🇷 Français</option>
       </select>
     </div>
   );

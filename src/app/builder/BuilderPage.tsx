@@ -189,31 +189,29 @@ export default function ResumeBuilderPage() {
     <main className="min-h-screen bg-gray-50">
       <Navbar title={isEditMode ? "Edit Resume" : "Resume Builder"} />
 
-      <div className="pt-20 px-3 sm:px-6 pb-8 max-w-7xl mx-auto">
+      <div className="pt-20 px-3 sm:px-6 pb-8 max-w-7xl mx-auto w-full">
         
         {/* Edit Mode Badge + Language Selector - Mobile Friendly */}
-        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
           {isEditMode && (
-            <div className="inline-flex items-center px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg w-fit">
-              <p className="text-sm text-blue-800">✏️ Editing existing resume</p>
+            <div className="inline-flex items-center px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800 font-medium">✏️ Editing existing resume</p>
             </div>
           )}
-          <div className="w-fit">
-            <LanguageSelector />
-          </div>
+          <LanguageSelector />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
 
           {/* LEFT COLUMN - Form */}
-          <section className="lg:col-span-7 space-y-4">
-            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+          <section className="w-full lg:col-span-7 space-y-4">
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 w-full overflow-hidden">
               
               {/* Tab Navigation */}
               <TabNav tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
               {/* Form Content */}
-              <div className="mt-6">
+              <div className="mt-6 w-full">
                 {renderTab()}
               </div>
             </div>
