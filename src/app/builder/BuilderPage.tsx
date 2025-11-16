@@ -156,7 +156,7 @@ export default function ResumeBuilderPage() {
         useResumeStore.setState({ id: saved.id });
       }
 
-      router.push(`/resume/${saved.id}/options`);
+      router.push(`${API_URL}/resume/${saved.id}/options`);
     } catch (error) {
       console.error(error);
       alert("Error saving resume.");
