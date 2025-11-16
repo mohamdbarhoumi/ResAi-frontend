@@ -28,3 +28,17 @@ body {
   @apply px-4 py-3 text-black border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500;
 }
 
+/* Add to your global.css or tailwind.css */
+@media (max-width: 1024px) {
+  /* Ensure full width on mobile */
+  .lg\:col-span-7 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Hide desktop preview on mobile */
+  .lg\:col-span-5 {
+    display: none !important;
+  }
+}
+
