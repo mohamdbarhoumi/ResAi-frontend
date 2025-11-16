@@ -63,6 +63,7 @@ export default function ResumeBuilderPage() {
     } else {
       useResumeStore.getState().clearAll();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeId]);
 
   const loadResume = async (id: string) => {
@@ -85,6 +86,7 @@ export default function ResumeBuilderPage() {
           language: resume.language || resume.data.language || "en",
         });
 
+        // small delay to let state settle before preview
         setTimeout(() => handleUpdatePreview(), 120);
       }
     } catch (err) {
@@ -112,18 +114,23 @@ export default function ResumeBuilderPage() {
         return <StepCertificates />;
       case "Languages":
         return <StepLanguages />;
+      default:
+        return null;
     }
   };
 
   const handleUpdatePreview = () => {
+    // snapshot the zustand state
     const state = useResumeStore.getState();
     const newSnapshot = JSON.parse(JSON.stringify(state));
 
+    // quick unmount/mount trick to force preview wrapper reload
     setSnapshot(null);
 
+    // use rAF to avoid layout thrash on mobile
     requestAnimationFrame(() => {
       setSnapshot(newSnapshot);
-      setPreviewKey((prev) => prev + 1);
+      setPreviewKey((k) => k + 1);
     });
   };
 
@@ -175,7 +182,7 @@ export default function ResumeBuilderPage() {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4" />
           <p className="text-gray-500">Loading...</p>
         </div>
       </main>
@@ -189,12 +196,12 @@ export default function ResumeBuilderPage() {
       <div className="pt-20 px-3 sm:px-6 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* LEFT SIDE */}
-          <section className="lg:col-span-7 bg-white rounded-xl shadow p-5 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
+          {/* LEFT COLUMN - Form & Mobile Preview */}
+          <section className="lg:col-span-7 bg-white rounded-xl shadow p-4 sm:p-6 w-full max-w-full overflow-x-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               {isEditMode && (
-                <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-                  ✏️ Editing an existing resume
+                <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">✏️ Editing an existing resume</p>
                 </div>
               )}
               <LanguageSelector />
@@ -202,40 +209,56 @@ export default function ResumeBuilderPage() {
 
             <TabNav tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
-            <div className="mt-5">{renderTab()}</div>
+            <div className="mt-4 space-y-4 w-full max-w-full overflow-x-hidden">
+              {renderTab()}
+            </div>
 
-            {/* MOBILE PREVIEW TOGGLE */}
-            <button
-              className="lg:hidden mt-6 w-full py-3 rounded-lg bg-blue-600 text-white font-medium active:scale-[0.98] transition"
-              onClick={() => setShowMobilePreview(!showMobilePreview)}
-            >
-              {showMobilePreview ? "Hide Preview" : "Show Preview"}
-            </button>
+            {/* Mobile controls */}
+            <div className="mt-4 lg:hidden space-y-3">
+              {/* mobile Update Preview */}
+              <button
+                onClick={handleUpdatePreview}
+                className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-medium active:scale-[0.98] transition"
+              >
+                Update Preview
+              </button>
 
+              {/* show/hide preview */}
+              <button
+                onClick={() => setShowMobilePreview((s) => !s)}
+                className="w-full py-3 bg-gray-100 rounded-lg text-gray-800 font-medium border hover:bg-gray-200 active:scale-[0.98]"
+              >
+                {showMobilePreview ? "Hide Preview" : "Show Preview"}
+              </button>
+            </div>
+
+            {/* Mobile Preview */}
             {showMobilePreview && (
-              <div className="mt-4 border rounded-xl bg-white p-3 sm:p-4">
+              <div className="mt-4 border rounded-xl bg-white p-3 max-h-[70vh] overflow-y-auto">
                 {snapshot ? (
                   <PDFPreviewWrapper key={previewKey} data={snapshot} />
                 ) : (
-                  <p className="text-center text-gray-400 text-sm">
-                    Tap “Update Preview” to see the resume preview.
-                  </p>
+                  <div className="h-40 flex items-center justify-center text-gray-400 text-sm">
+                    Tap &quot;Update Preview&quot; to generate the preview.
+                  </div>
                 )}
               </div>
             )}
           </section>
 
-          {/* RIGHT SIDE DESKTOP PREVIEW */}
+          {/* RIGHT COLUMN - Desktop Preview & Actions */}
           <aside className="hidden lg:block lg:col-span-5">
             <div className="bg-white rounded-xl shadow p-4 h-[75vh] flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-800">Template Preview</h3>
-                <button
-                  onClick={handleUpdatePreview}
-                  className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 active:scale-[0.98]"
-                >
-                  Update Preview
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleUpdatePreview}
+                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 active:scale-[0.98]"
+                  >
+                    Update Preview
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-hidden border rounded bg-gray-50">
@@ -243,7 +266,7 @@ export default function ResumeBuilderPage() {
                   <PDFPreviewWrapper key={previewKey} data={snapshot} />
                 ) : (
                   <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-                    Click “Update Preview” to generate your resume.
+                    Click &quot;Update Preview&quot; to generate your resume.
                   </div>
                 )}
               </div>
