@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import PDFPreviewWrapper from "@/src/app/builder/components/PdfPreviewWrapper";
 import DownloadButton from "@/src/app/builder/components/DownloadButton";
+import { API_URL } from "@/src/config/api";
 
 type Resume = {
   id: number;
@@ -82,7 +83,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}/download/pdf`,
+        `${API_URL}/api/resumes/${resumeId}/download/pdf`,
         {
           method: "POST",
           headers: {
@@ -115,7 +116,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}/download/docx`,
+        `${API_URL}/api/resumes/${resumeId}/download/docx`,
         {
           method: "POST",
           headers: {
@@ -153,7 +154,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}/tailor`,
+        `${API_URL}/api/resumes/${resumeId}/tailor`,
         {
           method: "POST",
           headers: {
@@ -191,7 +192,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${resumeId}/cover-letter`,
+        `${API_URL}/api/resumes/${resumeId}/cover-letter`,
         {
           method: "POST",
           headers: {
