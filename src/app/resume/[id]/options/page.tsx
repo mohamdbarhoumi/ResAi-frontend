@@ -201,20 +201,34 @@ export default function ResumeHubPage() {
 
       const responseData = await res.json();
       console.log("✅ Full tailoring response:", responseData);
+      console.log("✅ Response has success?", responseData.success);
+      console.log("✅ Response has resume?", !!responseData.resume);
+      console.log("✅ Response resume data:", responseData.resume?.data);
 
-      if (responseData.success) {
-        console.log("✅ Tailoring successful, reloading resume from server...");
+      // Your backend returns: { success: true, message: "...", resume: {...} }
+      if (responseData.success && responseData.resume) {
+        const newResumeData = JSON.stringify(responseData.resume.data);
+        const hasChanged = originalResumeData !== newResumeData;
         
-        // Clear current resume to force unmount
-        setResume(null);
+        console.log("🔍 Resume data changed?", hasChanged);
         
-        // Wait a moment then reload from server
-        await new Promise(resolve => setTimeout(resolve, 500));
+        if (!hasChanged) {
+          console.warn("⚠️ WARNING: Backend returned same data - tailoring might not be working!");
+        }
         
-        // Reload the resume from the server to get fresh data
-        await loadResume();
+        console.log("✅ Setting tailored resume from response");
         
-        alert("✅ Resume tailored successfully! Changes are now visible.");
+        // Update both resume and PDF key together
+        setResume(responseData.resume);
+        setPdfKey(prev => prev + 1);
+        
+        console.log("✅ States updated - new PDF key:", pdfKey + 1);
+        
+        if (hasChanged) {
+          alert("✅ Resume tailored successfully! Changes are now visible.");
+        } else {
+          alert("⚠️ Tailoring completed, but no changes were detected.");
+        }
       } else {
         console.error("❌ Unexpected response format:", responseData);
         throw new Error("Unexpected response format from server");
