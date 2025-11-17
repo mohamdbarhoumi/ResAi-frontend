@@ -68,35 +68,57 @@ export default function ResumeBuilderPage() {
     }
   }, [resumeId]);
 
-  const loadResume = async (id: string) => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/api/resumes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to load resume");
-
-      const { resume } = await response.json();
-
-      if (resume.data) {
-        useResumeStore.setState({
-          ...resume.data,
-          id: resume.id,
-          language: resume.language || resume.data.language || "en",
-        });
-
-        setTimeout(() => handleUpdatePreview(), 120);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load resume. Redirecting...");
-      router.push("/dashboard");
-    } finally {
-      setLoading(false);
+  const loadResume = async (id: string | string[]) => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
     }
-  };
+
+    // THIS IS THE FIX — always convert to string
+    const resumeId = Array.isArray(id) ? id[0] : id;
+    if (!resumeId) {
+      throw new Error("Invalid resume ID");
+    }
+
+    const url = `${API_URL}/api/resumes/${resumeId}`;
+    console.log("Loading resume from:", url); // ← you will see correct URL now
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Failed to load: ${response.status} ${text}`);
+    }
+
+    const data = await response.json();
+    const resume = data.resume ?? data; // handles both formats
+
+    if (!resume?.data) {
+      throw new Error("Invalid resume data");
+    }
+
+    useResumeStore.setState({
+      ...resume.data,
+      id: resume.id,
+      title: resume.title || resume.data.fullName || "My Resume",
+      language: resume.language || resume.data.language || "en",
+      aiMetadata: resume.aiMetadata || null,
+    });
+
+    setTimeout(() => handleUpdatePreview(), 120);
+  } catch (err: any) {
+    console.error("Load resume failed:", err);
+    alert("Failed to load resume. Redirecting to dashboard...");
+    router.push("/dashboard");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const renderTab = () => {
     switch (activeTab) {
