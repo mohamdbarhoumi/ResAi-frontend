@@ -162,10 +162,15 @@ export default function ResumeHubPage() {
   const handleTailorResume = async () => {
     if (!jobDescription.trim()) return alert("Please paste a job description");
 
+    // Store original resume for comparison
+    const originalResumeData = JSON.stringify(resume?.data);
+    console.log("📋 Original resume data:", resume?.data);
+
     setTailoring(true);
     try {
       const token = localStorage.getItem("token");
       console.log("🎯 Starting tailoring for resume:", resumeId);
+      console.log("🎯 Job description:", jobDescription.substring(0, 100) + "...");
       
       const res = await fetch(`${API_URL}/api/resumes/${resumeId}/tailor`, {
         method: "POST",
@@ -180,28 +185,49 @@ export default function ResumeHubPage() {
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error("❌ Tailoring failed:", errorText);
-        throw new Error(`Tailoring failed: ${errorText}`);
+        console.error("❌ Tailoring failed:", res.status, errorText);
+        throw new Error(`Tailoring failed: ${res.status} - ${errorText}`);
       }
 
       const responseData = await res.json();
-      console.log("✅ Tailoring response:", responseData);
+      console.log("✅ Full tailoring response:", responseData);
+      console.log("✅ Response has success?", responseData.success);
+      console.log("✅ Response has resume?", !!responseData.resume);
+      console.log("✅ Response resume data:", responseData.resume?.data);
 
-      // Check if the response includes the updated resume
-      if (responseData.resume) {
+      // Your backend returns: { success: true, message: "...", resume: {...} }
+      if (responseData.success && responseData.resume) {
+        const newResumeData = JSON.stringify(responseData.resume.data);
+        const hasChanged = originalResumeData !== newResumeData;
+        
+        console.log("🔍 Resume data changed?", hasChanged);
+        
+        if (!hasChanged) {
+          console.warn("⚠️ WARNING: Backend returned same data - tailoring might not be working!");
+          console.log("Original:", originalResumeData.substring(0, 200));
+          console.log("New:", newResumeData.substring(0, 200));
+        }
+        
         console.log("✅ Setting tailored resume from response");
+        
+        // Update the resume state with the tailored version
         setResume(responseData.resume);
-      } else if (responseData.data) {
-        console.log("✅ Setting tailored resume (alternate format)");
-        setResume(responseData);
+        
+        // Force PDF to re-render by changing the key
+        setPdfKey(prev => prev + 1);
+        
+        console.log("✅ PDF key updated to:", pdfKey + 1);
+        
+        if (hasChanged) {
+          alert("✅ Resume tailored successfully! Changes are now visible.");
+        } else {
+          alert("⚠️ Tailoring completed, but no changes were detected. The backend may not be modifying the resume.");
+        }
       } else {
-        // If response doesn't include resume, reload from server with delay
-        console.log("⏳ Waiting 2 seconds before reloading...");
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await loadResume();
+        console.error("❌ Unexpected response format:", responseData);
+        throw new Error("Unexpected response format from server");
       }
 
-      alert("Resume tailored successfully! The changes are now visible.");
     } catch (error: any) {
       console.error("❌ Tailoring error:", error);
       alert(`Failed to tailor resume: ${error.message}`);
@@ -342,7 +368,7 @@ export default function ResumeHubPage() {
                 <DownloadButton snapshot={resume.data} />
               </div>
               <div className="h-[75vh] bg-gray-50 rounded-lg overflow-hidden">
-                <MemoizedPDFPreview data={resume.data} />
+                <MemoizedPDFPreview key={pdfKey} data={resume.data} />
               </div>
             </div>
 
