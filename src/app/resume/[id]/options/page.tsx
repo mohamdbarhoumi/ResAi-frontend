@@ -19,12 +19,22 @@ type Resume = {
 };
 
 const MemoizedPDFPreview = memo(
-  ({ data }: { data: any }) => (
-    <div className="border rounded-lg bg-gray-50 overflow-hidden h-full">
-      <PDFPreviewWrapper data={data} />
-    </div>
-  ),
-  (prev, next) => JSON.stringify(prev.data) === JSON.stringify(next.data)
+  ({ data, forceKey }: { data: any; forceKey: number }) => {
+    console.log("🖼️ PDF Preview rendering with key:", forceKey);
+    console.log("🖼️ PDF Preview data:", data);
+    
+    return (
+      <div className="border rounded-lg bg-gray-50 overflow-hidden h-full">
+        <PDFPreviewWrapper data={data} />
+      </div>
+    );
+  },
+  (prev, next) => {
+    // Only re-render if the forceKey changes
+    const shouldNotRerender = prev.forceKey === next.forceKey;
+    console.log("🔍 PDF memo check - should skip rerender?", shouldNotRerender);
+    return shouldNotRerender;
+  }
 );
 
 MemoizedPDFPreview.displayName = "MemoizedPDFPreview";
@@ -368,7 +378,7 @@ export default function ResumeHubPage() {
                 <DownloadButton snapshot={resume.data} />
               </div>
               <div className="h-[75vh] bg-gray-50 rounded-lg overflow-hidden">
-                <MemoizedPDFPreview key={pdfKey} data={resume.data} />
+                <MemoizedPDFPreview key={pdfKey} data={resume.data} forceKey={0} />
               </div>
             </div>
 
