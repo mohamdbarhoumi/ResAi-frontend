@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -48,15 +49,16 @@ class PDFErrorBoundary extends Component<
 
 function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
   const [mounted, setMounted] = useState(false);
+  const [dataKey, setDataKey] = useState(0);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
-  // Log when data changes
+  // Force PDFViewer remount when data changes
   useEffect(() => {
     console.log("📄 PDFPreviewWrapper received new data:", data);
+    setDataKey(prev => prev + 1);
   }, [data]);
 
   if (!mounted) {
@@ -67,9 +69,12 @@ function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
     );
   }
 
+  console.log("🔄 Rendering PDFViewer with key:", dataKey);
+
   return (
     <PDFErrorBoundary>
       <PDFViewer
+        key={dataKey}
         style={{ width: "100%", height: "100%", border: "none" }}
         showToolbar={false}
       >
