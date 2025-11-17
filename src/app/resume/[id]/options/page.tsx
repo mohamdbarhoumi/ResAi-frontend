@@ -61,7 +61,7 @@ export default function ResumeHubPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(`${API_URL}/api/resumes/${resumeId}`, {
+      const response = await fetch(`${API_URL}/resume/${resumeId}/options`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
