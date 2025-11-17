@@ -52,6 +52,7 @@ export type Language = {
 };
 
 export type ResumeState = {
+  aiMetadata: null;
   id?: string;
   fullName: string;
   title: string;
