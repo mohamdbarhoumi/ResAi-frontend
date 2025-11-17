@@ -13,14 +13,14 @@ export type Experience = {
 };
 
 export type Education = {
-  id: string;                  
-  degree: string;              
-  institution: string;         
-  location: string;            
-  startDate: string;           
-  endDate: string;             
-  gpa?: string;                
-  honors?: string;             
+  id: string;
+  degree: string;
+  institution: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  gpa?: string;
+  honors?: string;
 };
 
 export type Project = {
@@ -33,26 +33,14 @@ export type Project = {
   bullets: { id: string; text: string }[];
 };
 
-export type Skill = {
-  id: string;    
-  name: string;  
-};
-
-export type Certificate = {
-  id: string;      
-  name: string;   
-  issuer?: string;
-  date?: string;  
-};
-
-export type Language = {
-  id: string;         
-  name: string;      
-  proficiency?: string; 
-};
+export type Skill = { id: string; name: string };
+export type Certificate = { id: string; name: string; issuer?: string; date?: string };
+export type Language = { id: string; name: string; proficiency?: string };
 
 export type ResumeState = {
-  aiMetadata: null;
+  // ← REQUIRED field (you said aiMetadata: null)
+  aiMetadata: Record<string, any> | null;
+
   id?: string;
   fullName: string;
   title: string;
@@ -63,7 +51,8 @@ export type ResumeState = {
   website?: string;
   github?: string;
   linkedin?: string;
-  language: string; 
+  language: string;
+
   experiences: Experience[];
   educations: Education[];
   projects: Project[];
@@ -104,6 +93,10 @@ export type ResumeState = {
 const id = () => Math.random().toString(36).slice(2, 9);
 
 export const useResumeStore = create<ResumeState>((set) => ({
+  // ← ADD aiMetadata here (was missing!)
+  aiMetadata: null,
+
+  id: undefined,
   fullName: "",
   title: "",
   email: "",
@@ -123,9 +116,9 @@ export const useResumeStore = create<ResumeState>((set) => ({
   languages: [],
 
   setPersonal: (payload) => set((s) => ({ ...s, ...payload })),
-  setLanguage: (lang) => set({ language: lang }), // NEW
+  setLanguage: (lang) => set({ language: lang }),
 
-  // Experience
+  // ───── Experience ─────
   addExperience: (exp) =>
     set((s) => ({
       experiences: [
@@ -153,7 +146,9 @@ export const useResumeStore = create<ResumeState>((set) => ({
       experiences: s.experiences.filter((e) => e.id !== idToRemove),
     })),
 
-  // Education
+  // ───── Education, Projects, Skills, Certificates, Languages ─────
+  // (kept exactly as you had them – they were already perfect)
+
   addEducation: (edu) =>
     set((s) => ({
       educations: [
@@ -181,7 +176,6 @@ export const useResumeStore = create<ResumeState>((set) => ({
       educations: s.educations.filter((x) => x.id !== idToRemove),
     })),
 
-  // Project
   addProject: (proj) =>
     set((s) => ({
       projects: [
@@ -208,11 +202,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
       projects: s.projects.filter((p) => p.id !== idToRemove),
     })),
 
-  // Skills
-  addSkill: (skill) =>
-    set((s) => ({
-      skills: [...s.skills, { id: id(), ...skill }],
-    })),
+  addSkill: (skill) => set((s) => ({ skills: [...s.skills, { id: id(), ...skill }] })),
   updateSkill: (idToUpdate, patch) =>
     set((s) => ({
       skills: s.skills.map((sItem) =>
@@ -220,15 +210,10 @@ export const useResumeStore = create<ResumeState>((set) => ({
       ),
     })),
   removeSkill: (idToRemove) =>
-    set((s) => ({
-      skills: s.skills.filter((sItem) => sItem.id !== idToRemove),
-    })),
+    set((s) => ({ skills: s.skills.filter((sItem) => sItem.id !== idToRemove) })),
 
-  // Certificates
   addCertificate: (cert) =>
-    set((s) => ({
-      certificates: [...s.certificates, { id: id(), ...cert }],
-    })),
+    set((s) => ({ certificates: [...s.certificates, { id: id(), ...cert }] })),
   updateCertificate: (idToUpdate, patch) =>
     set((s) => ({
       certificates: s.certificates.map((c) =>
@@ -240,11 +225,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
       certificates: s.certificates.filter((c) => c.id !== idToRemove),
     })),
 
-  // Languages
-  addLanguage: (lang) =>
-    set((s) => ({
-      languages: [...s.languages, { id: id(), ...lang }],
-    })),
+  addLanguage: (lang) => set((s) => ({ languages: [...s.languages, { id: id(), ...lang }] })),
   updateLanguage: (idToUpdate, patch) =>
     set((s) => ({
       languages: s.languages.map((l) =>
@@ -256,9 +237,11 @@ export const useResumeStore = create<ResumeState>((set) => ({
       languages: s.languages.filter((l) => l.id !== idToRemove),
     })),
 
-  // Clear all
+  // ← ALSO add aiMetadata in clearAll!
   clearAll: () =>
-    set(() => ({
+    set({
+      aiMetadata: null,
+      id: undefined,
       fullName: "",
       title: "",
       email: "",
@@ -275,5 +258,5 @@ export const useResumeStore = create<ResumeState>((set) => ({
       skills: [],
       certificates: [],
       languages: [],
-    })),
+    }),
 }));
