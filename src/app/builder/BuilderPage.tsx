@@ -183,7 +183,7 @@ export default function ResumeBuilderPage() {
 
     // Construct the redirect URL
     const redirectId = saved.id || resumeId;
-    const redirectUrl = `/resume/${redirectId}/options`;
+    const redirectUrl = `${API_URL}/resume/${redirectId}/options`;
     
     console.log("🔵 Redirecting to:", redirectUrl); // Debug log
 
