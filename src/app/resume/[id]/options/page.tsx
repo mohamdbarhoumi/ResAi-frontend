@@ -47,13 +47,12 @@ export default function ResumeHubPage() {
   const [tailoring, setTailoring] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
-  const [downloadingPDF, setDownloadingPDF] = useState(false);
-  const [downloadingDOCX, setDownloadingDOCX] = useState(false);
 
   // --- Load Resume ---
   useEffect(() => {
     if (!resumeId) return;
     loadResume();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeId]);
 
   const loadResume = async () => {
@@ -72,76 +71,10 @@ export default function ResumeHubPage() {
       setResume(resume);
     } catch (error) {
       console.error("Error loading resume:", error);
+      alert("Failed to load resume. Redirecting to dashboard...");
       router.push("/dashboard");
     } finally {
       setLoading(false);
-    }
-  };
-
-  // --- PDF Download ---
-  const handleDownloadPDF = async () => {
-    setDownloadingPDF(true);
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        `${API_URL}/api/resumes/${resumeId}/download/pdf`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) throw new Error("PDF download failed");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${resume?.data.fullName || "Resume"}_Resume.pdf`;
-      a.click();
-
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-      alert("Failed to download PDF");
-    } finally {
-      setDownloadingPDF(false);
-    }
-  };
-
-  // --- DOCX Download ---
-  const handleDownloadDOCX = async () => {
-    setDownloadingDOCX(true);
-
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        `${API_URL}/api/resumes/${resumeId}/download/docx`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) throw new Error("DOCX download failed");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${resume?.data.fullName || "Resume"}_Resume.docx`;
-      a.click();
-
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading DOCX:", error);
-      alert("Failed to download DOCX");
-    } finally {
-      setDownloadingDOCX(false);
     }
   };
 
@@ -171,11 +104,12 @@ export default function ResumeHubPage() {
 
       if (!response.ok) throw new Error("Tailoring failed");
 
+      // Reload resume to get updated data
       await loadResume();
-      alert("Resume tailored successfully!");
+      alert("Resume tailored successfully! Check the preview for changes.");
     } catch (error) {
       console.error("Tailoring error:", error);
-      alert("Tailoring failed.");
+      alert("Failed to tailor resume. Please try again.");
     } finally {
       setTailoring(false);
     }
@@ -184,7 +118,7 @@ export default function ResumeHubPage() {
   // --- Generate Cover Letter ---
   const handleGenerateCoverLetter = async () => {
     if (!jobDescription.trim()) {
-      alert("Paste a job description first");
+      alert("Please paste a job description first");
       return;
     }
 
@@ -205,30 +139,65 @@ export default function ResumeHubPage() {
         }
       );
 
-      if (!response.ok) throw new Error("Cover letter failed");
+      if (!response.ok) throw new Error("Cover letter generation failed");
 
       const { coverLetter } = await response.json();
       setCoverLetter(coverLetter);
     } catch (error) {
       console.error("Cover letter error:", error);
+      alert("Failed to generate cover letter. Please try again.");
     } finally {
       setGenerating(false);
     }
   };
 
-  if (loading)
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        Loading...
-      </main>
-    );
+  // --- Copy Cover Letter to Clipboard ---
+  const handleCopyCoverLetter = () => {
+    navigator.clipboard.writeText(coverLetter);
+    alert("Cover letter copied to clipboard!");
+  };
 
-  if (!resume)
+  // --- Download Cover Letter as TXT ---
+  const handleDownloadCoverLetter = () => {
+    const blob = new Blob([coverLetter], { type: "text/plain" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${resume?.data.fullName || "Cover"}_Letter.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  // --- Loading State ---
+  if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        Resume not found
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading resume...</p>
+        </div>
       </main>
     );
+  }
+
+  // --- Resume Not Found ---
+  if (!resume) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 text-lg">Resume not found</p>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -236,26 +205,25 @@ export default function ResumeHubPage() {
 
       <div className="pt-20 px-4 max-w-7xl mx-auto pb-10">
         {/* HEADER */}
-        <div className="mb-6 flex justify-between">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">{resume.title}</h1>
-            <p className="text-sm text-gray-500">
-              Last updated:{" "}
-              {new Date(resume.updatedAt).toLocaleDateString()}
+            <h1 className="text-2xl font-bold text-gray-900">{resume.title}</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Last updated: {new Date(resume.updatedAt).toLocaleDateString()}
             </p>
           </div>
 
           <div className="flex gap-3">
             <button
               onClick={() => router.push(`/builder?id=${resumeId}`)}
-              className="px-4 py-2 bg-gray-200 rounded-lg"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
             >
               ✏️ Edit Resume
             </button>
 
             <button
               onClick={() => router.push("/dashboard")}
-              className="px-4 py-2 bg-gray-200 rounded-lg"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
             >
               ← Back
             </button>
@@ -266,9 +234,11 @@ export default function ResumeHubPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT — PREVIEW */}
           <section className="lg:col-span-7">
-            <div className="bg-white rounded-xl shadow-lg p-4">
-              <div className="flex justify-between mb-4">
-                <h2 className="text-lg font-semibold">Preview</h2>
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Resume Preview
+                </h2>
                 <DownloadButton snapshot={resume.data} />
               </div>
 
@@ -276,45 +246,105 @@ export default function ResumeHubPage() {
                 <MemoizedPDFPreview data={resume.data} />
               </div>
             </div>
+
+            {/* Tips Panel */}
+            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <h3 className="font-semibold text-blue-900 mb-2">💡 Quick Tips</h3>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• Save as &quot;FirstName_LastName_Resume.pdf&quot; for applications</li>
+                <li>• Keep your resume under 2 pages for best results</li>
+                <li>• Remove tables or images for ATS compatibility</li>
+                <li>• Tailor your resume for each job application</li>
+              </ul>
+            </div>
           </section>
 
           {/* RIGHT — TOOLS */}
           <aside className="lg:col-span-5">
             {/* Tailor Section */}
-            <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
-              <h2 className="text-lg font-semibold mb-2">Tailor Resume</h2>
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">📝</span>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Tailor for Specific Job
+                </h2>
+              </div>
 
               <textarea
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                className="w-full h-40 p-3 border rounded-lg"
-                placeholder="Paste job description..."
+                className="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                placeholder="Paste the job description here..."
               />
 
               <button
                 disabled={tailoring || !jobDescription.trim()}
                 onClick={handleTailorResume}
-                className="w-full mt-4 px-4 py-3 bg-blue-600 text-white rounded-lg"
+                className="w-full mt-4 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
-                {tailoring ? "Tailoring..." : "✨ Tailor Resume"}
+                {tailoring ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    Tailoring Resume...
+                  </span>
+                ) : (
+                  "✨ Tailor Resume"
+                )}
               </button>
             </div>
 
-            {/* Cover Letter */}
-            <div className="bg-white rounded-xl shadow-lg p-4">
-              <h2 className="text-lg font-semibold mb-2">Cover Letter</h2>
+            {/* Cover Letter Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">✉️</span>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Need a Cover Letter?
+                </h2>
+              </div>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Generate a professional cover letter using your resume and the job description above.
+              </p>
 
               <button
                 disabled={generating || !jobDescription.trim()}
                 onClick={handleGenerateCoverLetter}
-                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg"
+                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
-                {generating ? "Generating..." : "📧 Generate Cover Letter"}
+                {generating ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    Generating...
+                  </span>
+                ) : (
+                  "📧 Generate Cover Letter"
+                )}
               </button>
 
               {coverLetter && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg border max-h-80 overflow-auto whitespace-pre-wrap">
-                  {coverLetter}
+                <div className="mt-4 border-t pt-4">
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Your Cover Letter:
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-auto">
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                      {coverLetter}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={handleCopyCoverLetter}
+                      className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                    >
+                      📋 Copy
+                    </button>
+                    <button
+                      onClick={handleDownloadCoverLetter}
+                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                    >
+                      💾 Download
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Menu, X, Eye, Save, ArrowLeft } from "lucide-react";
 
@@ -35,19 +35,17 @@ const PDFPreviewWrapper = dynamic(
 export default function ResumeBuilderPage() {
   useAuthGuard();
 
-  // ❗ FIX: Extract ID from dynamic route instead of query params
-  const params = useParams();
-  const resumeId = params?.id || null;
-
+  const searchParams = useSearchParams();
+  const resumeId = searchParams?.get("id") ?? null;
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState("Personal");
-  const [snapshot, setSnapshot] = useState(null);
+  const [snapshot, setSnapshot] = useState<Record<string, any> | null>(null);
   const [previewKey, setPreviewKey] = useState(0);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-
+  
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
@@ -70,7 +68,7 @@ export default function ResumeBuilderPage() {
     }
   }, [resumeId]);
 
-  const loadResume = async (id) => {
+  const loadResume = async (id: string) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -116,9 +114,7 @@ export default function ResumeBuilderPage() {
   const handleUpdatePreview = () => {
     const state = useResumeStore.getState();
     const newSnapshot = JSON.parse(JSON.stringify(state));
-
     setSnapshot(null);
-
     requestAnimationFrame(() => {
       setSnapshot(newSnapshot);
       setPreviewKey((k) => k + 1);
@@ -126,71 +122,86 @@ export default function ResumeBuilderPage() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+  
+  if (!token) {
+    alert("You must be logged in to save.");
+    router.push("/login");
+    return;
+  }
 
-    if (!token) {
-      alert("You must be logged in to save.");
-      router.push("/login");
+  setSaving(true);
+
+  try {
+    const state = useResumeStore.getState();
+    
+    // Validate required fields
+    if (!state.fullName || !state.email) {
+      alert("Please fill in at least your name and email before saving.");
+      setSaving(false);
       return;
     }
 
-    setSaving(true);
+    const payload = {
+      title: state.title || state.fullName || "My Resume",
+      data: state,
+      aiMetadata: null,
+      language: state.language || "en",
+    };
 
-    try {
-      const state = useResumeStore.getState();
+    const url = isEditMode
+      ? `${API_URL}/api/resumes/update/${resumeId}`
+      : `${API_URL}/api/resumes/create`;
 
-      if (!state.fullName || !state.email) {
-        alert("Please fill in at least your name and email before saving.");
-        setSaving(false);
-        return;
-      }
+    console.log("🔵 Saving to:", url); // Debug log
+    console.log("🔵 Payload:", payload); // Debug log
 
-      const payload = {
-        title: state.title || state.fullName || "My Resume",
-        data: state,
-        aiMetadata: null,
-        language: state.language || "en",
-      };
+    const response = await fetch(url, {
+      method: isEditMode ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      const url = isEditMode
-        ? `${API_URL}/api/resumes/update/${resumeId}`
-        : `${API_URL}/api/resumes/create`;
+    console.log("🔵 Response status:", response.status); // Debug log
 
-      const response = await fetch(url, {
-        method: isEditMode ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Save failed: ${response.status}`);
-      }
-
-      const saved = await response.json();
-
-      // update state when creating new
-      if (!isEditMode && saved.id) {
-        useResumeStore.setState({ id: saved.id });
-      }
-
-      const redirectId = saved.id || resumeId;
-      router.push(`/resume/${redirectId}/options`);
-    } catch (error) {
-      alert(`Error saving resume: ${error.message || "Unknown error"}`);
-    } finally {
-      setSaving(false);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("❌ Save failed:", errorData);
+      throw new Error(errorData.error || `Save failed: ${response.status}`);
     }
-  };
 
+    const saved = await response.json();
+    console.log("✅ Saved successfully:", saved); // Debug log
+
+    // Update store with the saved ID if creating new
+    if (!isEditMode && saved.id) {
+      useResumeStore.setState({ id: saved.id });
+    }
+
+    // Construct the redirect URL
+    const redirectId = saved.id || resumeId;
+    const redirectUrl = `${API_URL}/resume/${redirectId}/options`;
+    
+    console.log("🔵 Redirecting to:", redirectUrl); // Debug log
+
+    // Navigate to options page
+    router.push(redirectUrl);
+
+  } catch (error: any) {
+    console.error("❌ Save error:", error);
+    alert(`Error saving resume: ${error.message || "Unknown error"}`);
+  } finally {
+    setSaving(false);
+  }
+};
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar title={isEditMode ? "Edit Resume" : "Resume Builder"} />
 
-      {/* MOBILE TOP BAR */}
+      {/* MOBILE: Top Bar with Menu + Actions */}
       <div className="lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-30 flex items-center justify-between gap-3">
         <button
           onClick={() => setShowMobileMenu(true)}
@@ -199,7 +210,7 @@ export default function ResumeBuilderPage() {
           <Menu className="w-5 h-5" />
           <span className="text-sm font-medium">{activeTab}</span>
         </button>
-
+        
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
@@ -220,13 +231,10 @@ export default function ResumeBuilderPage() {
         </div>
       </div>
 
-      {/* MOBILE MENU */}
+      {/* MOBILE: Sidebar Menu */}
       {showMobileMenu && (
-        <div
-          className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50"
-          onClick={() => setShowMobileMenu(false)}
-        >
-          <div
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setShowMobileMenu(false)}>
+          <div 
             className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -236,7 +244,7 @@ export default function ResumeBuilderPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-
+            
             <div className="p-3 border-b">
               {isEditMode && (
                 <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg mb-3">
@@ -278,7 +286,7 @@ export default function ResumeBuilderPage() {
         </div>
       )}
 
-      {/* MOBILE PREVIEW MODAL */}
+      {/* MOBILE: Preview Modal */}
       {showMobilePreview && (
         <div className="lg:hidden fixed inset-0 z-50 bg-white">
           <div className="h-full flex flex-col">
@@ -304,17 +312,16 @@ export default function ResumeBuilderPage() {
         </div>
       )}
 
-      {/* DESKTOP MAIN CONTENT */}
+      {/* DESKTOP + MOBILE: Main Content */}
       <div className="pt-32 lg:pt-20 px-4 sm:px-6 pb-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* FORM COLUMN */}
+
+          {/* LEFT COLUMN - Form (Hidden on mobile when preview is open) */}
           <section className="lg:col-span-7">
             <div className="hidden lg:flex items-center justify-between mb-4">
               {isEditMode && (
                 <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800 font-medium">
-                    ✏️ Editing existing resume
-                  </p>
+                  <p className="text-sm text-blue-800 font-medium">✏️ Editing existing resume</p>
                 </div>
               )}
               <LanguageSelector />
@@ -325,16 +332,15 @@ export default function ResumeBuilderPage() {
                 <TabNav tabs={tabs} active={activeTab} onChange={setActiveTab} />
               </div>
 
-              <div className="mt-6">{renderTab()}</div>
+              <div className="mt-6 lg:mt-6">
+                {renderTab()}
+              </div>
             </div>
           </section>
 
-          {/* DESKTOP PREVIEW COLUMN */}
+          {/* RIGHT COLUMN - Desktop Preview */}
           <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24 lg:self-start">
-            <div
-              className="bg-white rounded-xl shadow-md p-4 flex flex-col"
-              style={{ height: "calc(100vh - 120px)" }}
-            >
+            <div className="bg-white rounded-xl shadow-md p-4 flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
               <div className="flex items-center justify-between mb-3 pb-3 border-b">
                 <h3 className="font-semibold text-gray-800 text-lg">📄 Preview</h3>
                 <button
