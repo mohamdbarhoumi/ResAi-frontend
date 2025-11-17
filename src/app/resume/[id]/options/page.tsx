@@ -104,42 +104,47 @@ export default function ResumeHubPage() {
   };
 
   const handleTailorResume = async () => {
-    if (!jobDescription.trim()) {
-      return alert("Please paste a job description first.");
+  if (!jobDescription.trim()) {
+    return alert("Please paste a job description first.");
+  }
+
+  setTailoring(true);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
     }
 
-    setTailoring(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
+    // THIS WAS THE BUG → you were using GET instead of POST
+    const response = await fetch(`${API_URL}/api/resumes/${resumeId}/tailor`, {
+      method: "POST",  // ← MUST BE POST
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ jobDescription }), // ← send the JD in body
+    });
 
-      const response = await fetch(`${API_URL}/api/resumes/${resumeId}/tailor`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ jobDescription }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Tailoring failed (${response.status})`);
-      }
-
-      await loadResume();
-      alert("Resume tailored successfully! Preview updated below.");
-      setJobDescription("");
-    } catch (err: any) {
-      console.error("Tailor error:", err);
-      alert(`Failed to tailor resume: ${err.message}`);
-    } finally {
-      setTailoring(false);
+    // Better error reporting
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Tailor failed:", response.status, errorText);
+      throw new Error(errorText || `Server error ${response.status}`);
     }
-  };
+
+    // Success → reload the newly tailored resume
+    await loadResume();
+    alert("Resume tailored successfully! Preview updated.");
+    setJobDescription(""); // clear for next use
+
+  } catch (err: any) {
+    console.error("Tailor error:", err);
+    alert(`Tailoring failed: ${err.message}`);
+  } finally {
+    setTailoring(false);
+  }
+};
 
   const handleGenerateCoverLetter = async () => {
     if (!jobDescription.trim()) {
