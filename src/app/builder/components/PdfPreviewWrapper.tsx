@@ -49,32 +49,40 @@ class PDFErrorBoundary extends Component<
 
 function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
   const [mounted, setMounted] = useState(false);
-  const [dataKey, setDataKey] = useState(0);
-
+  const [pdfKey, setPdfKey] = useState(0);
+  
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Force PDFViewer remount when data changes
+  // When data changes, force remount by unmounting and remounting
   useEffect(() => {
-    console.log("📄 PDFPreviewWrapper received new data:", data);
-    setDataKey(prev => prev + 1);
+    console.log("📄 PDFPreviewWrapper data changed, forcing remount");
+    
+    // Unmount
+    setMounted(false);
+    
+    // Remount after a short delay
+    const timer = setTimeout(() => {
+      setPdfKey(prev => prev + 1);
+      setMounted(true);
+      console.log("🔄 PDF remounted with key:", pdfKey + 1);
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [data]);
 
   if (!mounted) {
     return (
       <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-        Initializing PDF renderer...
+        Rendering PDF...
       </div>
     );
   }
 
-  console.log("🔄 Rendering PDFViewer with key:", dataKey);
-
   return (
-    <PDFErrorBoundary>
+    <PDFErrorBoundary key={pdfKey}>
       <PDFViewer
-        key={dataKey}
         style={{ width: "100%", height: "100%", border: "none" }}
         showToolbar={false}
       >
@@ -84,6 +92,4 @@ function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
   );
 }
 
-// FIXED: Remove React.memo completely to allow re-renders
-// The PDFViewer component handles its own internal optimization
 export default PDFPreviewWrapper;
