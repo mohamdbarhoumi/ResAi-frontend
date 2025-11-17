@@ -373,8 +373,12 @@ export default function ResumeHubPage() {
                 <h2 className="text-lg font-semibold text-gray-900">Resume Preview</h2>
                 <DownloadButton snapshot={resume.data} />
               </div>
-              <div className="h-[75vh] bg-gray-50 rounded-lg overflow-hidden" key={`pdf-${pdfKey}-${resume?.id}`}>
-                <PDFPreviewWrapper data={resume.data} />
+              <div className="h-[75vh] bg-gray-50 rounded-lg overflow-hidden">
+                {/* Force complete remount by using key with timestamp */}
+                <PDFPreviewWrapper 
+                  key={`pdf-${pdfKey}-${resume?.id}-${Date.now()}`} 
+                  data={resume.data} 
+                />
               </div>
             </div>
 

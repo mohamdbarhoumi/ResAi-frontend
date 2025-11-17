@@ -50,8 +50,14 @@ function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
+
+  // Log when data changes
+  useEffect(() => {
+    console.log("📄 PDFPreviewWrapper received new data:", data);
+  }, [data]);
 
   if (!mounted) {
     return (
@@ -73,6 +79,6 @@ function PDFPreviewWrapper({ data }: PDFPreviewWrapperProps) {
   );
 }
 
-export default React.memo(PDFPreviewWrapper, (prevProps, nextProps) => {
-  return JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data);
-});
+// FIXED: Remove React.memo completely to allow re-renders
+// The PDFViewer component handles its own internal optimization
+export default PDFPreviewWrapper;
