@@ -122,48 +122,81 @@ export default function ResumeBuilderPage() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
-    setSaving(true);
+  const token = localStorage.getItem("token");
+  
+  if (!token) {
+    alert("You must be logged in to save.");
+    router.push("/login");
+    return;
+  }
 
-    try {
-      const state = useResumeStore.getState();
-      const payload = {
-        title: state.title || state.fullName || "My Resume",
-        data: state,
-        aiMetadata: null,
-        language: state.language,
-      };
+  setSaving(true);
 
-      const url = isEditMode
-        ? `${API_URL}/api/resumes/update/${resumeId}`
-        : `${API_URL}/api/resumes/create`;
-
-      const response = await fetch(url, {
-        method: isEditMode ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error("Failed to save resume");
-
-      const saved = await response.json();
-
-      if (!isEditMode) {
-        useResumeStore.setState({ id: saved.id });
-      }
-
-      // 🔥 FIXED REDIRECT
-      router.push(`/resume/${saved.id}/options`);
-    } catch (error) {
-      console.error(error);
-      alert("Error saving resume.");
-    } finally {
+  try {
+    const state = useResumeStore.getState();
+    
+    // Validate required fields
+    if (!state.fullName || !state.email) {
+      alert("Please fill in at least your name and email before saving.");
       setSaving(false);
+      return;
     }
-  };
+
+    const payload = {
+      title: state.title || state.fullName || "My Resume",
+      data: state,
+      aiMetadata: null,
+      language: state.language || "en",
+    };
+
+    const url = isEditMode
+      ? `${API_URL}/api/resumes/update/${resumeId}`
+      : `${API_URL}/api/resumes/create`;
+
+    console.log("🔵 Saving to:", url); // Debug log
+    console.log("🔵 Payload:", payload); // Debug log
+
+    const response = await fetch(url, {
+      method: isEditMode ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log("🔵 Response status:", response.status); // Debug log
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("❌ Save failed:", errorData);
+      throw new Error(errorData.error || `Save failed: ${response.status}`);
+    }
+
+    const saved = await response.json();
+    console.log("✅ Saved successfully:", saved); // Debug log
+
+    // Update store with the saved ID if creating new
+    if (!isEditMode && saved.id) {
+      useResumeStore.setState({ id: saved.id });
+    }
+
+    // Construct the redirect URL
+    const redirectId = saved.id || resumeId;
+    const redirectUrl = `/resume/${redirectId}/options`;
+    
+    console.log("🔵 Redirecting to:", redirectUrl); // Debug log
+
+    // Navigate to options page
+    router.push(redirectUrl);
+
+  } catch (error: any) {
+    console.error("❌ Save error:", error);
+    alert(`Error saving resume: ${error.message || "Unknown error"}`);
+  } finally {
+    setSaving(false);
+  }
+};
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar title={isEditMode ? "Edit Resume" : "Resume Builder"} />
