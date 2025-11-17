@@ -214,24 +214,20 @@ export default function ResumeHubPage() {
         
         if (!hasChanged) {
           console.warn("⚠️ WARNING: Backend returned same data - tailoring might not be working!");
-          console.log("Original:", originalResumeData.substring(0, 200));
-          console.log("New:", newResumeData.substring(0, 200));
         }
         
         console.log("✅ Setting tailored resume from response");
         
-        // Update the resume state with the tailored version
+        // Update both resume and PDF key together
         setResume(responseData.resume);
-        
-        // Force PDF to re-render by changing the key
         setPdfKey(prev => prev + 1);
         
-        console.log("✅ PDF key updated to:", pdfKey + 1);
+        console.log("✅ States updated - new PDF key:", pdfKey + 1);
         
         if (hasChanged) {
           alert("✅ Resume tailored successfully! Changes are now visible.");
         } else {
-          alert("⚠️ Tailoring completed, but no changes were detected. The backend may not be modifying the resume.");
+          alert("⚠️ Tailoring completed, but no changes were detected.");
         }
       } else {
         console.error("❌ Unexpected response format:", responseData);
@@ -377,8 +373,8 @@ export default function ResumeHubPage() {
                 <h2 className="text-lg font-semibold text-gray-900">Resume Preview</h2>
                 <DownloadButton snapshot={resume.data} />
               </div>
-              <div className="h-[75vh] bg-gray-50 rounded-lg overflow-hidden">
-                <MemoizedPDFPreview key={pdfKey} data={resume.data} forceKey={0} />
+              <div className="h-[75vh] bg-gray-50 rounded-lg overflow-hidden" key={`pdf-${pdfKey}-${resume?.id}`}>
+                <PDFPreviewWrapper data={resume.data} />
               </div>
             </div>
 
