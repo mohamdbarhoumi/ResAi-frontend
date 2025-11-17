@@ -45,6 +45,7 @@ export default function ResumeBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
@@ -68,36 +69,35 @@ export default function ResumeBuilderPage() {
   }, [resumeId]);
 
   const loadResume = async (id: string) => {
-  setLoading(true);
-  try {
-    const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}/api/resumes/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}/api/resumes/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    if (!response.ok) throw new Error("Failed to load");
+      if (!response.ok) throw new Error("Failed to load resume");
 
-    const data = await response.json();
-    const resume = data.resume ?? data;
+      const { resume } = await response.json();
 
-    if (!resume?.data) throw new Error("Invalid resume data");
+      if (resume.data) {
+        useResumeStore.setState({
+          ...resume.data,
+          id: resume.id,
+          language: resume.language || resume.data.language || "en",
+        });
 
-    useResumeStore.setState({
-      ...resume.data,
-      id: resume.id,
-      title: resume.title || resume.data.fullName || "My Resume",
-      language: resume.language || resume.data.language || "en",
-      aiMetadata: resume.aiMetadata || null,
-    });
+        setTimeout(() => handleUpdatePreview(), 120);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load resume. Redirecting...");
+      router.push("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setTimeout(() => handleUpdatePreview(), 120);
-  } catch (err) {
-    alert("Failed to load resume. Redirecting...");
-    router.push("/dashboard");
-  } finally {
-    setLoading(false);
-  }
-};
   const renderTab = () => {
     switch (activeTab) {
       case "Personal": return <StepPersonal />;
@@ -123,6 +123,7 @@ export default function ResumeBuilderPage() {
 
   const handleSave = async () => {
   const token = localStorage.getItem("token");
+  
   if (!token) {
     alert("You must be logged in to save.");
     router.push("/login");
@@ -133,9 +134,10 @@ export default function ResumeBuilderPage() {
 
   try {
     const state = useResumeStore.getState();
-
-    if (!state.fullName?.trim() || !state.email?.trim()) {
-      alert("Please fill in your name and email before saving.");
+    
+    // Validate required fields
+    if (!state.fullName || !state.email) {
+      alert("Please fill in at least your name and email before saving.");
       setSaving(false);
       return;
     }
@@ -143,13 +145,16 @@ export default function ResumeBuilderPage() {
     const payload = {
       title: state.title || state.fullName || "My Resume",
       data: state,
-      aiMetadata: state.aiMetadata || null,
+      aiMetadata: null,
       language: state.language || "en",
     };
 
     const url = isEditMode
-      ? `${API_URL}/api/resumes/${resumeId}`
+      ? `${API_URL}/api/resumes/update/${resumeId}`
       : `${API_URL}/api/resumes/create`;
+
+    console.log("🔵 Saving to:", url); // Debug log
+    console.log("🔵 Payload:", payload); // Debug log
 
     const response = await fetch(url, {
       method: isEditMode ? "PUT" : "POST",
@@ -160,58 +165,43 @@ export default function ResumeBuilderPage() {
       body: JSON.stringify(payload),
     });
 
+    console.log("🔵 Response status:", response.status); // Debug log
+
     if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || "Save failed");
+      const errorData = await response.json().catch(() => ({}));
+      console.error("❌ Save failed:", errorData);
+      throw new Error(errorData.error || `Save failed: ${response.status}`);
     }
 
     const saved = await response.json();
-    console.log("Raw backend response:", saved);
+    console.log("✅ Saved successfully:", saved); // Debug log
 
-    // ───── THIS HANDLES EVERY POSSIBLE FORMAT YOU EVER HAD ─────
-    let savedResume: any;
-
-    if (saved.resume) {
-      savedResume = saved.resume;                    // { resume: { ... } }
-    } else if (saved.id) {
-      savedResume = saved;                           // raw resume object
-    } else if (Array.isArray(saved) && saved[0]?.id) {
-      savedResume = saved[0];                        // sometimes happens on create
-    } else {
-      throw new Error("Unexpected response format – no resume ID found");
+    // Update store with the saved ID if creating new
+    if (!isEditMode && saved.id) {
+      useResumeStore.setState({ id: saved.id });
     }
 
-    // ───── GUARANTEED ID ─────
-    const resumeIdFromServer = savedResume.id;
-    if (!resumeIdFromServer) {
-      throw new Error("Server did not return a resume ID");
-    }
+    // Construct the redirect URL
+    const redirectId = saved.id || resumeId;
+    const redirectUrl = `/resume/${redirectId}/options`;
+    
+    console.log("🔵 Redirecting to:", redirectUrl); // Debug log
 
-    // Update store
-    useResumeStore.setState({
-      ...(savedResume.data || savedResume),
-      id: resumeIdFromServer,
-      title: savedResume.title || state.fullName || "My Resume",
-      language: savedResume.language || "en",
-      aiMetadata: savedResume.aiMetadata || null,
-    });
-
-    // ───── FINAL REDIRECT – NEVER undefined AGAIN ─────
-    router.push(`/resume/${resumeIdFromServer}/options`);
+    // Navigate to options page
+    router.push(redirectUrl);
 
   } catch (error: any) {
-    console.error("Save failed:", error);
-    alert(error.message || "Failed to save resume");
+    console.error("❌ Save error:", error);
+    alert(`Error saving resume: ${error.message || "Unknown error"}`);
   } finally {
     setSaving(false);
   }
 };
-
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar title={isEditMode ? "Edit Resume" : "Resume Builder"} />
 
-      {/* Mobile Top Bar */}
+      {/* MOBILE: Top Bar with Menu + Actions */}
       <div className="lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-30 flex items-center justify-between gap-3">
         <button
           onClick={() => setShowMobileMenu(true)}
@@ -220,7 +210,7 @@ export default function ResumeBuilderPage() {
           <Menu className="w-5 h-5" />
           <span className="text-sm font-medium">{activeTab}</span>
         </button>
-
+        
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
@@ -241,73 +231,123 @@ export default function ResumeBuilderPage() {
         </div>
       </div>
 
-      {/* Mobile Menu & Preview */}
+      {/* MOBILE: Sidebar Menu */}
       {showMobileMenu && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setShowMobileMenu(false)}>
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div 
+            className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="font-semibold text-lg">Sections</h3>
-              <button onClick={() => setShowMobileMenu(false)}><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowMobileMenu(false)}>
+                <X className="w-5 h-5" />
+              </button>
             </div>
+            
             <div className="p-3 border-b">
-              {isEditMode && <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg mb-3"><p className="text-sm text-blue-800">Editing mode</p></div>}
+              {isEditMode && (
+                <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg mb-3">
+                  <p className="text-sm text-blue-800">✏️ Editing mode</p>
+                </div>
+              )}
               <LanguageSelector />
             </div>
+
             <nav className="p-3 space-y-1">
               {tabs.map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => { setActiveTab(tab); setShowMobileMenu(false); }}
-                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === tab ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${
+                    activeTab === tab
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
                 >
                   {tab}
                 </button>
               ))}
             </nav>
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-gray-50">
-              <button onClick={() => router.push("/dashboard")} className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium">
-                <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-gray-50 space-y-2">
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Dashboard
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* MOBILE: Preview Modal */}
       {showMobilePreview && (
         <div className="lg:hidden fixed inset-0 z-50 bg-white">
           <div className="h-full flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="font-semibold text-lg">Preview</h3>
-              <button onClick={() => setShowMobilePreview(false)} className="p-2 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
+              <button
+                onClick={() => setShowMobilePreview(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <div className="flex-1 overflow-auto p-4">
-              {snapshot ? <PDFPreviewWrapper key={previewKey} data={snapshot} /> : <div className="h-full flex items-center justify-center text-gray-400">No preview available</div>}
+              {snapshot ? (
+                <PDFPreviewWrapper key={previewKey} data={snapshot} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400">
+                  No preview available
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Desktop Layout */}
+      {/* DESKTOP + MOBILE: Main Content */}
       <div className="pt-32 lg:pt-20 px-4 sm:px-6 pb-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* LEFT COLUMN - Form (Hidden on mobile when preview is open) */}
           <section className="lg:col-span-7">
             <div className="hidden lg:flex items-center justify-between mb-4">
-              {isEditMode && <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg"><p className="text-sm text-blue-800 font-medium">Editing existing resume</p></div>}
+              {isEditMode && (
+                <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800 font-medium">✏️ Editing existing resume</p>
+                </div>
+              )}
               <LanguageSelector />
             </div>
 
             <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-              <div className="hidden lg:block"><TabNav tabs={tabs} active={activeTab} onChange={setActiveTab} /></div>
-              <div className="mt-6 lg:mt-6">{renderTab()}</div>
+              <div className="hidden lg:block">
+                <TabNav tabs={tabs} active={activeTab} onChange={setActiveTab} />
+              </div>
+
+              <div className="mt-6 lg:mt-6">
+                {renderTab()}
+              </div>
             </div>
           </section>
 
+          {/* RIGHT COLUMN - Desktop Preview */}
           <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24 lg:self-start">
             <div className="bg-white rounded-xl shadow-md p-4 flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
               <div className="flex items-center justify-between mb-3 pb-3 border-b">
-                <h3 className="font-semibold text-gray-800 text-lg">Preview</h3>
-                <button onClick={handleUpdatePreview} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
-                  Update
+                <h3 className="font-semibold text-gray-800 text-lg">📄 Preview</h3>
+                <button
+                  onClick={handleUpdatePreview}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+                >
+                  🔄 Update
                 </button>
               </div>
 
@@ -322,7 +362,10 @@ export default function ResumeBuilderPage() {
               </div>
 
               <div className="mt-4 flex gap-3">
-                <button onClick={() => router.push("/dashboard")} className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
+                >
                   Cancel
                 </button>
                 <button
@@ -330,7 +373,7 @@ export default function ResumeBuilderPage() {
                   disabled={saving}
                   className="flex-1 px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
                 >
-                  {saving ? "Saving..." : isEditMode ? "Update" : "Save"}
+                  {saving ? "Saving..." : isEditMode ? "💾 Update" : "💾 Save"}
                 </button>
               </div>
             </div>
