@@ -68,38 +68,36 @@ export default function ResumeBuilderPage() {
   }, [resumeId]);
 
   const loadResume = async (id: string) => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/api/resumes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/resumes/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      if (!response.ok) throw new Error("Failed to load resume");
+    if (!response.ok) throw new Error("Failed to load");
 
-      const data = await response.json();
-      const resume = data.resume ?? data; // ← Handles both wrapped and raw
+    const data = await response.json();
+    const resume = data.resume ?? data;
 
-      if (resume?.data) {
-        useResumeStore.setState({
-          ...resume.data,
-          id: resume.id,
-          title: resume.title || resume.data.fullName || "My Resume",
-          language: resume.language || resume.data.language || "en",
-          aiMetadata: resume.aiMetadata || null,
-        });
+    if (!resume?.data) throw new Error("Invalid resume data");
 
-        setTimeout(() => handleUpdatePreview(), 120);
-      }
-    } catch (err) {
-      console.error("Load resume error:", err);
-      alert("Failed to load resume. Redirecting to dashboard...");
-      router.push("/dashboard");
-    } finally {
-      setLoading(false);
-    }
-  };
+    useResumeStore.setState({
+      ...resume.data,
+      id: resume.id,
+      title: resume.title || resume.data.fullName || "My Resume",
+      language: resume.language || resume.data.language || "en",
+      aiMetadata: resume.aiMetadata || null,
+    });
 
+    setTimeout(() => handleUpdatePreview(), 120);
+  } catch (err) {
+    alert("Failed to load resume. Redirecting...");
+    router.push("/dashboard");
+  } finally {
+    setLoading(false);
+  }
+};
   const renderTab = () => {
     switch (activeTab) {
       case "Personal": return <StepPersonal />;
@@ -124,81 +122,90 @@ export default function ResumeBuilderPage() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to save.");
-      router.push("/login");
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to save.");
+    router.push("/login");
+    return;
+  }
+
+  setSaving(true);
+
+  try {
+    const state = useResumeStore.getState();
+
+    if (!state.fullName?.trim() || !state.email?.trim()) {
+      alert("Please fill in your name and email before saving.");
+      setSaving(false);
       return;
     }
 
-    setSaving(true);
+    const payload = {
+      title: state.title || state.fullName || "My Resume",
+      data: state,
+      aiMetadata: state.aiMetadata || null,
+      language: state.language || "en",
+    };
 
-    try {
-      const state = useResumeStore.getState();
+    const url = isEditMode
+      ? `${API_URL}/api/resumes/${resumeId}`
+      : `${API_URL}/api/resumes/create`;
 
-      if (!state.fullName?.trim() || !state.email?.trim()) {
-        alert("Please fill in your name and email before saving.");
-        setSaving(false);
-        return;
-      }
+    const response = await fetch(url, {
+      method: isEditMode ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      const payload = {
-        title: state.title || state.fullName || "My Resume",
-        data: state,
-        aiMetadata: state.aiMetadata || null,
-        language: state.language || "en",
-      };
-
-      const url = isEditMode
-        ? `${API_URL}/api/resumes/${resumeId}`
-        : `${API_URL}/api/resumes/create`;
-
-      const response = await fetch(url, {
-        method: isEditMode ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.error || `Save failed (${response.status})`);
-      }
-
-      const saved = await response.json();
-      console.log("Saved response:", saved);
-
-      // ← THIS IS THE ONLY CRITICAL FIX
-      const savedResume = saved.resume ?? saved;  // ← Works with both formats!
-
-      if (!savedResume?.id) {
-        console.error("No ID in saved resume:", saved);
-        alert("Resume saved but ID missing. Going to dashboard.");
-        router.push("/dashboard");
-        return;
-      }
-
-      // Update store with fresh server data
-      useResumeStore.setState({
-        ...(savedResume.data || savedResume),
-        id: savedResume.id,
-        title: savedResume.title || savedResume.data?.fullName || "My Resume",
-        language: savedResume.language || "en",
-        aiMetadata: savedResume.aiMetadata || null,
-      });
-
-      // ← Correct redirect — no more "undefined"
-      router.push(`/resume/${savedResume.id}/options`);
-
-    } catch (error: any) {
-      console.error("Save error:", error);
-      alert(`Error saving resume: ${error.message}`);
-    } finally {
-      setSaving(false);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || "Save failed");
     }
-  };
+
+    const saved = await response.json();
+    console.log("Raw backend response:", saved);
+
+    // ───── THIS HANDLES EVERY POSSIBLE FORMAT YOU EVER HAD ─────
+    let savedResume: any;
+
+    if (saved.resume) {
+      savedResume = saved.resume;                    // { resume: { ... } }
+    } else if (saved.id) {
+      savedResume = saved;                           // raw resume object
+    } else if (Array.isArray(saved) && saved[0]?.id) {
+      savedResume = saved[0];                        // sometimes happens on create
+    } else {
+      throw new Error("Unexpected response format – no resume ID found");
+    }
+
+    // ───── GUARANTEED ID ─────
+    const resumeIdFromServer = savedResume.id;
+    if (!resumeIdFromServer) {
+      throw new Error("Server did not return a resume ID");
+    }
+
+    // Update store
+    useResumeStore.setState({
+      ...(savedResume.data || savedResume),
+      id: resumeIdFromServer,
+      title: savedResume.title || state.fullName || "My Resume",
+      language: savedResume.language || "en",
+      aiMetadata: savedResume.aiMetadata || null,
+    });
+
+    // ───── FINAL REDIRECT – NEVER undefined AGAIN ─────
+    router.push(`/resume/${resumeIdFromServer}/options`);
+
+  } catch (error: any) {
+    console.error("Save failed:", error);
+    alert(error.message || "Failed to save resume");
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <main className="min-h-screen bg-gray-50">
