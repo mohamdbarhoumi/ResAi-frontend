@@ -6,7 +6,6 @@ import Navbar from "../../../../app/components/Navbar";
 import PDFPreviewWrapper from "@/src/app/builder/components/PdfPreviewWrapper";
 import DownloadButton from "@/src/app/builder/components/DownloadButton";
 
-// HARDCODED — this is the only way to guarantee no more "undefined"
 const API_URL = "https://resai-backend.onrender.com";
 
 type Resume = {
@@ -33,7 +32,6 @@ export default function ResumeHubPage() {
   const params = useParams();
   const router = useRouter();
 
-  // THIS IS THE CRITICAL FIX — handles both string and string[] safely
   const resumeId = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
   const [resume, setResume] = useState<Resume | null>(null);
@@ -44,11 +42,19 @@ export default function ResumeHubPage() {
   const [coverLetter, setCoverLetter] = useState("");
 
   useEffect(() => {
-    if (resumeId) loadResume();
+    if (resumeId) {
+      // Add a small delay to ensure backend has processed the save
+      const timer = setTimeout(() => {
+        loadResume();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
   }, [resumeId]);
 
-  const loadResume = async () => {
+  const loadResume = async (retryCount = 0) => {
     if (!resumeId) {
+      console.error("❌ No resume ID provided");
       router.push("/dashboard");
       return;
     }
@@ -56,13 +62,16 @@ export default function ResumeHubPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      console.log("🔍 Token exists:", !!token);
+      
       if (!token) {
+        console.error("❌ No token found, redirecting to login");
         router.push("/login");
         return;
       }
 
       const url = `${API_URL}/api/resumes/${resumeId}`;
-      console.log("Fetching resume from:", url); // ← Debug: you will see correct URL
+      console.log("🔵 Fetching resume from:", url);
 
       const res = await fetch(url, {
         headers: {
@@ -70,23 +79,51 @@ export default function ResumeHubPage() {
         },
       });
 
+      console.log("🔵 Response status:", res.status);
+
       if (!res.ok) {
         const text = await res.text();
+        console.error("❌ Response not OK:", text);
+        
+        // If it's a 404 and we haven't retried yet, try again
+        if (res.status === 404 && retryCount < 2) {
+          console.log("⏳ Resume not found, retrying in 1 second...");
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return loadResume(retryCount + 1);
+        }
+        
         throw new Error(`Failed: ${res.status} ${text}`);
       }
 
       const data = await res.json();
-      const resumeData = data.resume ?? data;
+      console.log("🔍 API Response:", data);
+
+      // Handle both response formats
+      let resumeData;
+      if (data.resume) {
+        resumeData = data.resume;
+      } else if (data.id && data.data) {
+        resumeData = data;
+      } else {
+        console.error("❌ Invalid response format:", data);
+        throw new Error("Invalid resume format");
+      }
+
+      console.log("✅ Resume data loaded:", resumeData);
 
       if (!resumeData?.id) {
-        throw new Error("Invalid resume format");
+        throw new Error("Resume missing ID");
       }
 
       setResume(resumeData);
     } catch (error: any) {
-      console.error("Load error:", error);
-      alert("Failed to load resume: " + error.message);
-      router.push("/dashboard");
+      console.error("❌ Load error:", error);
+      
+      // Only show alert and redirect if we've exhausted retries
+      if (retryCount >= 2) {
+        alert("Failed to load resume: " + error.message);
+        router.push("/dashboard");
+      }
     } finally {
       setLoading(false);
     }
@@ -238,7 +275,7 @@ export default function ResumeHubPage() {
           <aside className="lg:col-span-5 space-y-6">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">Tailor Resume</span>
+                <span className="text-2xl">🎯</span>
                 <h2 className="text-lg font-semibold text-gray-900">Tailor for Job</h2>
               </div>
               <textarea
@@ -258,7 +295,7 @@ export default function ResumeHubPage() {
 
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">Cover Letter</span>
+                <span className="text-2xl">📝</span>
                 <h2 className="text-lg font-semibold text-gray-900">Cover Letter</h2>
               </div>
               <p className="text-sm text-gray-600 mb-4">
