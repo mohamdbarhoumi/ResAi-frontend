@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../../app/components/Navbar";
 import PDFPreviewWrapper from "@/src/app/builder/components/PdfPreviewWrapper";
 import DownloadButton from "@/src/app/builder/components/DownloadButton";
-import { API_URL } from "@/src/config/api";
+const API_URL = "https://resai-backend.onrender.com";
 
 type Resume = {
   id: number;
