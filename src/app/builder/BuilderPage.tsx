@@ -119,7 +119,6 @@ export default function ResumeBuilderPage() {
     setLoading(false);
   }
 };
-
   const renderTab = () => {
     switch (activeTab) {
       case "Personal": return <StepPersonal />;
