@@ -159,54 +159,50 @@ export default function ResumeHubPage() {
   };
 
   const handleTailorResume = async () => {
-    if (!jobDescription.trim()) return alert("Please paste a job description");
+  if (!jobDescription.trim()) {
+    return alert("Please paste a job description first.");
+  }
 
-    setTailoring(true);
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/tailor`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ jobDescription }),
-      });
-
-      if (!res.ok) throw new Error("Tailoring failed");
-      await loadResume();
-      alert("Resume tailored successfully!");
-    } catch {
-      alert("Failed to tailor resume");
-    } finally {
-      setTailoring(false);
+  setTailoring(true);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
     }
-  };
 
-  const handleGenerateCoverLetter = async () => {
-    if (!jobDescription.trim()) return alert("Please paste a job description");
+    const response = await fetch(`${API_URL}/api/resumes/${resumeId}/tailor`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ jobDescription }),
+    });
 
-    setGenerating(true);
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/cover-letter`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ jobDescription }),
-      });
-
-      if (!res.ok) throw new Error("Failed");
-      const { coverLetter } = await res.json();
-      setCoverLetter(coverLetter);
-    } catch {
-      alert("Failed to generate cover letter");
-    } finally {
-      setGenerating(false);
+    // Detailed error handling
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Tailor failed:", response.status, errorText);
+      throw new Error(
+        errorText || `Tailoring failed (${response.status})`
+      );
     }
-  };
+
+    // Success — force reload the freshly tailored resume
+    console.log("Tailoring successful, reloading resume...");
+    await loadResume();  // This is what makes the preview update!
+
+    alert("Resume tailored successfully! Preview updated below.");
+    setJobDescription(""); // Optional: clear the textarea for next use
+
+  } catch (err: any) {
+    console.error("handleTailorResume error:", err);
+    alert(`Failed to tailor resume: ${err.message || "Unknown error"}`);
+  } finally {
+    setTailoring(false);
+  }
+};
 
   const handleCopyCoverLetter = () => {
     navigator.clipboard.writeText(coverLetter);
