@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../../app/components/Navbar";
 import PDFPreviewWrapper from "@/src/app/builder/components/PdfPreviewWrapper";
 import DownloadButton from "@/src/app/builder/components/DownloadButton";
+import { useAuthGuard } from "../../../../app/hooks/useAuthGuard";
 
 const API_URL = "https://resai-backend.onrender.com";
 
@@ -29,6 +30,8 @@ const MemoizedPDFPreview = memo(
 MemoizedPDFPreview.displayName = "MemoizedPDFPreview";
 
 export default function ResumeHubPage() {
+  useAuthGuard(); // Add auth guard
+  
   const params = useParams();
   const router = useRouter();
 
@@ -36,6 +39,7 @@ export default function ResumeHubPage() {
 
   const [resume, setResume] = useState<Resume | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [tailoring, setTailoring] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -43,10 +47,10 @@ export default function ResumeHubPage() {
 
   useEffect(() => {
     if (resumeId) {
-      // Add a small delay to ensure backend has processed the save
+      // Small delay to ensure backend has saved
       const timer = setTimeout(() => {
         loadResume();
-      }, 500);
+      }, 800);
       
       return () => clearTimeout(timer);
     }
@@ -54,75 +58,100 @@ export default function ResumeHubPage() {
 
   const loadResume = async (retryCount = 0) => {
     if (!resumeId) {
-      console.error("❌ No resume ID provided");
-      router.push("/dashboard");
+      console.error("❌ No resume ID");
+      setError("No resume ID provided");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
+    console.log("🔵 Starting load attempt", retryCount + 1, "for resume ID:", resumeId);
+    
     try {
       const token = localStorage.getItem("token");
-      console.log("🔍 Token exists:", !!token);
       
       if (!token) {
-        console.error("❌ No token found, redirecting to login");
+        console.error("❌ No token, redirecting to login");
         router.push("/login");
         return;
       }
 
       const url = `${API_URL}/api/resumes/${resumeId}`;
-      console.log("🔵 Fetching resume from:", url);
+      console.log("🔵 Fetching from:", url);
+      console.log("🔵 Token preview:", token.substring(0, 20) + "...");
 
       const res = await fetch(url, {
+        method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
+        cache: "no-store",
       });
 
       console.log("🔵 Response status:", res.status);
+      console.log("🔵 Response headers:", Object.fromEntries(res.headers.entries()));
+
+      // Get response text first to handle both JSON and non-JSON responses
+      const responseText = await res.text();
+      console.log("🔵 Raw response:", responseText.substring(0, 500));
 
       if (!res.ok) {
-        const text = await res.text();
-        console.error("❌ Response not OK:", text);
+        console.error("❌ Response not OK:", res.status, responseText);
         
-        // If it's a 404 and we haven't retried yet, try again
-        if (res.status === 404 && retryCount < 2) {
-          console.log("⏳ Resume not found, retrying in 1 second...");
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        // Retry logic for 404 or 500 errors (backend might be slow)
+        if ((res.status === 404 || res.status === 500) && retryCount < 3) {
+          console.log(`⏳ Retry ${retryCount + 1}/3 in 1.5 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 1500));
           return loadResume(retryCount + 1);
         }
         
-        throw new Error(`Failed: ${res.status} ${text}`);
+        throw new Error(`HTTP ${res.status}: ${responseText}`);
       }
 
-      const data = await res.json();
-      console.log("🔍 API Response:", data);
+      // Try to parse JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log("✅ Parsed JSON:", data);
+      } catch (e) {
+        console.error("❌ Failed to parse JSON:", e);
+        throw new Error("Invalid JSON response from server");
+      }
 
-      // Handle both response formats
+      // Handle multiple possible response formats
       let resumeData;
+      
       if (data.resume) {
+        console.log("✅ Using data.resume format");
         resumeData = data.resume;
-      } else if (data.id && data.data) {
+      } else if (data.data && data.id) {
+        console.log("✅ Using direct resume format");
         resumeData = data;
+      } else if (Array.isArray(data) && data.length > 0) {
+        console.log("✅ Using array format (taking first item)");
+        resumeData = data[0];
       } else {
-        console.error("❌ Invalid response format:", data);
-        throw new Error("Invalid resume format");
+        console.error("❌ Unrecognized format:", Object.keys(data));
+        throw new Error("Unexpected response format");
       }
 
-      console.log("✅ Resume data loaded:", resumeData);
-
-      if (!resumeData?.id) {
-        throw new Error("Resume missing ID");
+      if (!resumeData?.id || !resumeData?.data) {
+        console.error("❌ Invalid resume data:", resumeData);
+        throw new Error("Resume missing required fields (id or data)");
       }
 
+      console.log("✅ Successfully loaded resume:", resumeData.id);
       setResume(resumeData);
+      setError(null);
+      
     } catch (error: any) {
       console.error("❌ Load error:", error);
+      setError(error.message);
       
-      // Only show alert and redirect if we've exhausted retries
-      if (retryCount >= 2) {
-        alert("Failed to load resume: " + error.message);
-        router.push("/dashboard");
+      // Only redirect after final retry
+      if (retryCount >= 3) {
+        alert(`Failed to load resume: ${error.message}\n\nRedirecting to dashboard...`);
+        setTimeout(() => router.push("/dashboard"), 2000);
       }
     } finally {
       setLoading(false);
@@ -200,6 +229,35 @@ export default function ResumeHubPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading resume...</p>
+          <p className="text-xs text-gray-400 mt-2">Resume ID: {resumeId}</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-4">
+            <p className="text-red-800 font-semibold mb-2">Error Loading Resume</p>
+            <p className="text-sm text-red-600 mb-4">{error}</p>
+            <p className="text-xs text-gray-600">Resume ID: {resumeId}</p>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => loadResume()}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       </main>
     );
