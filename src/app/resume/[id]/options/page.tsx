@@ -44,6 +44,7 @@ export default function ResumeHubPage() {
   const [tailoring, setTailoring] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
+  const [pdfKey, setPdfKey] = useState(0); // Force PDF refresh
 
   useEffect(() => {
     if (resumeId) {
