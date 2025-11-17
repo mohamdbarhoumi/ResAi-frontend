@@ -6,7 +6,7 @@ import Navbar from "../../../../app/components/Navbar";
 import PDFPreviewWrapper from "@/src/app/builder/components/PdfPreviewWrapper";
 import DownloadButton from "@/src/app/builder/components/DownloadButton";
 
-// Fixed backend URL — correct and absolute
+// HARDCODED — this is the only way to guarantee no more "undefined"
 const API_URL = "https://resai-backend.onrender.com";
 
 type Resume = {
@@ -32,7 +32,9 @@ MemoizedPDFPreview.displayName = "MemoizedPDFPreview";
 export default function ResumeHubPage() {
   const params = useParams();
   const router = useRouter();
-  const resumeId = params?.id as string;
+
+  // THIS IS THE CRITICAL FIX — handles both string and string[] safely
+  const resumeId = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
   const [resume, setResume] = useState<Resume | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +48,10 @@ export default function ResumeHubPage() {
   }, [resumeId]);
 
   const loadResume = async () => {
-    if (!resumeId) return;
+    if (!resumeId) {
+      router.push("/dashboard");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -56,7 +61,10 @@ export default function ResumeHubPage() {
         return;
       }
 
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}`, {
+      const url = `${API_URL}/api/resumes/${resumeId}`;
+      console.log("Fetching resume from:", url); // ← Debug: you will see correct URL
+
+      const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -64,22 +72,20 @@ export default function ResumeHubPage() {
 
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(`Failed to load resume: ${res.status} ${text}`);
+        throw new Error(`Failed: ${res.status} ${text}`);
       }
 
       const data = await res.json();
-
-      // This handles BOTH { resume: { ... } } and raw object
       const resumeData = data.resume ?? data;
 
       if (!resumeData?.id) {
-        throw new Error("Invalid resume data received");
+        throw new Error("Invalid resume format");
       }
 
       setResume(resumeData);
-    } catch (error) {
-      console.error("Load resume error:", error);
-      alert("Failed to load resume. Redirecting to dashboard...");
+    } catch (error: any) {
+      console.error("Load error:", error);
+      alert("Failed to load resume: " + error.message);
       router.push("/dashboard");
     } finally {
       setLoading(false);
@@ -104,7 +110,7 @@ export default function ResumeHubPage() {
       if (!res.ok) throw new Error("Tailoring failed");
       await loadResume();
       alert("Resume tailored successfully!");
-    } catch (err) {
+    } catch {
       alert("Failed to tailor resume");
     } finally {
       setTailoring(false);
@@ -126,10 +132,10 @@ export default function ResumeHubPage() {
         body: JSON.stringify({ jobDescription }),
       });
 
-      if (!res.ok) throw new Error("Failed to generate cover letter");
+      if (!res.ok) throw new Error("Failed");
       const { coverLetter } = await res.json();
       setCoverLetter(coverLetter);
-    } catch (err) {
+    } catch {
       alert("Failed to generate cover letter");
     } finally {
       setGenerating(false);
@@ -138,7 +144,7 @@ export default function ResumeHubPage() {
 
   const handleCopyCoverLetter = () => {
     navigator.clipboard.writeText(coverLetter);
-    alert("Copied to clipboard!");
+    alert("Copied!");
   };
 
   const handleDownloadCoverLetter = () => {
@@ -232,8 +238,8 @@ export default function ResumeHubPage() {
           <aside className="lg:col-span-5 space-y-6">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">Tailor for Job</span>
-                <h2 className="text-lg font-semibold text-gray-900">Tailor Resume</h2>
+                <span className="text-2xl">Tailor Resume</span>
+                <h2 className="text-lg font-semibold text-gray-900">Tailor for Job</h2>
               </div>
               <textarea
                 value={jobDescription}
