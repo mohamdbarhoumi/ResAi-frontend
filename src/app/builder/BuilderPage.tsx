@@ -45,7 +45,6 @@ export default function ResumeBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
@@ -78,14 +77,16 @@ export default function ResumeBuilderPage() {
 
       if (!response.ok) throw new Error("Failed to load resume");
 
-      const { resume } = await response.json(); // ← Backend now returns { resume: { ... } }
+      const data = await response.json();
+      const resume = data.resume ?? data; // ← Handles both wrapped and raw
 
       if (resume?.data) {
         useResumeStore.setState({
           ...resume.data,
           id: resume.id,
-          title: resume.title,
+          title: resume.title || resume.data.fullName || "My Resume",
           language: resume.language || resume.data.language || "en",
+          aiMetadata: resume.aiMetadata || null,
         });
 
         setTimeout(() => handleUpdatePreview(), 120);
@@ -149,8 +150,8 @@ export default function ResumeBuilderPage() {
       };
 
       const url = isEditMode
-        ? `${API_URL}/api/resumes/${resumeId}`           // PUT → /api/resumes/{id}
-        : `${API_URL}/api/resumes/create`;               // POST → /api/resumes/create
+        ? `${API_URL}/api/resumes/${resumeId}`
+        : `${API_URL}/api/resumes/create`;
 
       const response = await fetch(url, {
         method: isEditMode ? "PUT" : "POST",
@@ -167,23 +168,29 @@ export default function ResumeBuilderPage() {
       }
 
       const saved = await response.json();
-      console.log("Saved resume response:", saved);
+      console.log("Saved response:", saved);
 
-      // The backend returns { resume: { id, title, data, ... } }
-      const savedResume = saved.resume;
+      // ← THIS IS THE ONLY CRITICAL FIX
+      const savedResume = saved.resume ?? saved;  // ← Works with both formats!
 
-      // Update store with fresh data from server
-      if (savedResume) {
-        useResumeStore.setState({
-          ...savedResume.data,
-          id: savedResume.id,
-          title: savedResume.title,
-          language: savedResume.language || "en",
-        });
-
-        // Only redirect after successful save
-        router.push(`/resume/${savedResume.id}/options`);
+      if (!savedResume?.id) {
+        console.error("No ID in saved resume:", saved);
+        alert("Resume saved but ID missing. Going to dashboard.");
+        router.push("/dashboard");
+        return;
       }
+
+      // Update store with fresh server data
+      useResumeStore.setState({
+        ...(savedResume.data || savedResume),
+        id: savedResume.id,
+        title: savedResume.title || savedResume.data?.fullName || "My Resume",
+        language: savedResume.language || "en",
+        aiMetadata: savedResume.aiMetadata || null,
+      });
+
+      // ← Correct redirect — no more "undefined"
+      router.push(`/resume/${savedResume.id}/options`);
 
     } catch (error: any) {
       console.error("Save error:", error);
@@ -227,7 +234,7 @@ export default function ResumeBuilderPage() {
         </div>
       </div>
 
-      {/* Mobile Menu & Preview Modals */}
+      {/* Mobile Menu & Preview */}
       {showMobileMenu && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setShowMobileMenu(false)}>
           <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
@@ -273,11 +280,9 @@ export default function ResumeBuilderPage() {
         </div>
       )}
 
-      {/* Main Layout */}
+      {/* Desktop Layout */}
       <div className="pt-32 lg:pt-20 px-4 sm:px-6 pb-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          {/* Left: Form */}
           <section className="lg:col-span-7">
             <div className="hidden lg:flex items-center justify-between mb-4">
               {isEditMode && <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg"><p className="text-sm text-blue-800 font-medium">Editing existing resume</p></div>}
@@ -290,7 +295,6 @@ export default function ResumeBuilderPage() {
             </div>
           </section>
 
-          {/* Right: Desktop Preview */}
           <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24 lg:self-start">
             <div className="bg-white rounded-xl shadow-md p-4 flex flex-col" style={{ height: 'calc(100vh - 120px)' }}>
               <div className="flex items-center justify-between mb-3 pb-3 border-b">
