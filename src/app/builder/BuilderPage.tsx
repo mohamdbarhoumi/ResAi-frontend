@@ -261,7 +261,7 @@ export default function ResumeBuilderPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Sections</h3>
+              <h3 className="font-semibold text-lg text-gray-900">Sections</h3>
               <button onClick={() => setShowMobileMenu(false)}>
                 <X className="w-5 h-5" />
               </button>
