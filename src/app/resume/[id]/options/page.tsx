@@ -386,7 +386,7 @@ export default function ResumeHubPage() {
               <textarea
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                className="w-full h-40 p-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none text-gray-900"
                 placeholder="Paste job description here..."
               />
               <button
@@ -416,12 +416,12 @@ export default function ResumeHubPage() {
 
               {coverLetter && (
                 <div className="mt-6 border-t pt-6">
-                  <h3 className="font-semibold mb-3">Your Cover Letter</h3>
-                  <div className="bg-gray-900 p-4 rounded-lg max-h-96 overflow-auto text-sm whitespace-pre-wrap">
+                  <h3 className="font-semibold mb-3 text-gray-900">Your Cover Letter</h3>
+                  <div className="text-gray-900 p-4 rounded-lg max-h-96 overflow-auto text-sm whitespace-pre-wrap">
                     {coverLetter}
                   </div>
                   <div className="flex gap-3 mt-4">
-                    <button onClick={handleCopyCoverLetter} className="flex-1 py-2 bg-gray-200 rounded-lg">
+                    <button onClick={handleCopyCoverLetter} className="flex-1 py-2 bg-gray-900 rounded-lg">
                       Copy
                     </button>
                     <button onClick={handleDownloadCoverLetter} className="flex-1 py-2 bg-green-600 text-white rounded-lg">
