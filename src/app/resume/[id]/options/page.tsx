@@ -386,7 +386,7 @@ export default function ResumeHubPage() {
               <textarea
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                className="w-full h-40 p-3 text-color-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full h-40 p-3 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
                 placeholder="Paste job description here..."
               />
               <button
