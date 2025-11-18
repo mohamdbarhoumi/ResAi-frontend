@@ -170,63 +170,62 @@ export default function ResumeHubPage() {
   };
 
   const handleTailorResume = async () => {
-    if (!jobDescription.trim()) return alert("Please paste a job description");
+  if (!jobDescription.trim()) return alert("Please paste a job description");
 
-    // Store original resume for comparison
-    const originalResumeData = JSON.stringify(resume?.data);
-    console.log("📋 Original resume data:", resume?.data);
+  console.log("🎯 Starting tailoring for resume:", resumeId);
+  
+  setTailoring(true);
+  try {
+    const token = localStorage.getItem("token");
+    
+    const res = await fetch(`${API_URL}/api/resumes/${resumeId}/tailor`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ jobDescription }),
+    });
 
-    setTailoring(true);
-    try {
-      const token = localStorage.getItem("token");
-      console.log("🎯 Starting tailoring for resume:", resumeId);
-      console.log("🎯 Job description:", jobDescription.substring(0, 100) + "...");
-      
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/tailor`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ jobDescription }),
-      });
+    console.log("🎯 Tailoring response status:", res.status);
 
-      console.log("🎯 Tailoring response status:", res.status);
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Tailoring failed:", res.status, errorText);
-        throw new Error(`Tailoring failed: ${res.status} - ${errorText}`);
-      }
-
-      const responseData = await res.json();
-      console.log("✅ Full tailoring response:", responseData);
-
-      if (responseData.success) {
-        console.log("✅ Tailoring successful, reloading resume from server...");
-        
-        // Clear current resume to force unmount
-        setResume(null);
-        
-        // Wait a moment then reload from server
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Reload the resume from the server to get fresh data
-        await loadResume();
-        
-        alert("✅ Resume tailored successfully! Changes are now visible.");
-      } else {
-        console.error("❌ Unexpected response format:", responseData);
-        throw new Error("Unexpected response format from server");
-      }
-
-    } catch (error: any) {
-      console.error("❌ Tailoring error:", error);
-      alert(`Failed to tailor resume: ${error.message}`);
-    } finally {
-      setTailoring(false);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Tailoring failed:", res.status, errorText);
+      throw new Error(`Tailoring failed: ${res.status}`);
     }
-  };
+
+    const responseData = await res.json();
+    console.log("✅ Full tailoring response:", responseData);
+
+    if (responseData.success && responseData.resume) {
+      console.log("✅ Tailoring successful, updating resume");
+      console.log("📋 Old data hash:", JSON.stringify(resume?.data).substring(0, 50));
+      console.log("📋 New data hash:", JSON.stringify(responseData.resume.data).substring(0, 50));
+      
+      // ✅ Update resume state with fresh data
+      setResume(responseData.resume);
+      
+      // ✅ Force PDF re-render by incrementing key
+      setPdfKey(prev => {
+        const newKey = prev + 1;
+        console.log("🔑 Incrementing PDF key to:", newKey);
+        return newKey;
+      });
+      
+      alert("✅ Resume tailored successfully!");
+    } else {
+      console.error("❌ Unexpected response format:", responseData);
+      throw new Error("Unexpected response format from server");
+    }
+
+  } catch (error: any) {
+    console.error("❌ Tailoring error:", error);
+    alert(`Failed to tailor resume: ${error.message}`);
+  } finally {
+    setTailoring(false);
+  }
+};
 
   const handleGenerateCoverLetter = async () => {
     if (!jobDescription.trim()) return alert("Please paste a job description");
@@ -360,11 +359,10 @@ export default function ResumeHubPage() {
                 <DownloadButton snapshot={resume.data} />
               </div>
               <div className="h-[75vh] bg-gray-50 rounded-lg overflow-hidden">
-                {/* Force complete remount by using key with timestamp */}
                 <PDFPreviewWrapper 
-                  key={`pdf-${pdfKey}-${resume?.id}-${Date.now()}`} 
-                  data={resume.data} 
-                />
+      key={`pdf-${pdfKey}`}
+      data={resume.data} 
+    />
               </div>
             </div>
 
