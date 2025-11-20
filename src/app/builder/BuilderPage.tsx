@@ -224,7 +224,7 @@ export default function ResumeBuilderPage() {
       <Navbar title={isEditMode ? "Edit Resume" : "Resume Builder"} />
 
       {/* MOBILE: Top Bar with Menu + Actions */}
-      <div className="lg:hidden fixed top-16 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-30 flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed top-16 left-0 right-0 bg-white text-gray-900 border-b border-gray-700 px-4 py-3 z-30 flex items-center justify-between gap-3">
         <button
           onClick={() => setShowMobileMenu(true)}
           className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
